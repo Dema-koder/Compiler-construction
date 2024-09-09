@@ -26,9 +26,18 @@ public enum TokenType {
     DOT("\\."),
     COMMA(","),
 
+    ARRAY("Array"),
+    LIST("List"),
+    ANYREF("AnyRef"),
+    ANYVALUE("AnyValue"),
+    INTEGER("Integer"),
+    REAL("Real"),
+    BOOLEAN("Boolean"),
+
     IDENTIFIER("[a-zA-Z_][a-zA-Z0-9_]*"),
     INTEGER_LITERAL("\\d+"),
     REAL_LITERAL("\\d+\\.\\d+"),
+    STRING_LITERAL("\"([^\"]*)\""),
     BOOLEAN_LITERAL("true|false"),
 
     WHITESPACE("[ \t\f\r\n]+");
