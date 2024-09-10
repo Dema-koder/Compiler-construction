@@ -1,6 +1,7 @@
 package lexical;
 
 public enum TokenType {
+    PROGRAM("Program"),
     CLASS("class"),
     EXTENDS("extends"),
     IS("is"),
@@ -43,8 +44,14 @@ public enum TokenType {
     WHITESPACE("[ \t\f\r\n]+");
 
     public final String pattern;
+    public Long position = 0L;
 
     TokenType(String pattern) {
         this.pattern = pattern;
+    }
+
+    TokenType(String pattern, Long position) {
+        this.pattern = pattern;
+        this.position = position;
     }
 }

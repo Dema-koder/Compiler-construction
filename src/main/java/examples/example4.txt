@@ -1,0 +1,7 @@
+class Circle is
+    var radius: 5.0
+
+    method area: Real is
+        return 3.14.Mult(self.radius).Mult(self.radius)
+    end
+end

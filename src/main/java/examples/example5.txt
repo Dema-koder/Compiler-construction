@@ -1,0 +1,11 @@
+class LightSwitch is
+    var state: Boolean(true)
+
+    method toggle is
+        if self.state then
+            self.state := false
+        else
+            self.state := true
+        end
+    end
+end

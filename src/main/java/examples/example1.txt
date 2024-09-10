@@ -1,0 +1,13 @@
+var 4a123
+
+class Animal is
+    method speak: String is
+        return "Generic sound"
+    end
+end
+
+class Dog extends Animal is
+    method speak: String is
+        return "Bark"
+    end
+end

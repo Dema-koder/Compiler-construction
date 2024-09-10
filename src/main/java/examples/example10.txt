@@ -1,0 +1,10 @@
+method isEven(n: Integer): Boolean is
+    return n.Rem(2).Equal(0)
+end
+var x: Integer(10)
+var b: Boolean := isEven(x)
+if b then
+    x := x.Plus(1)
+else
+    x := x.Minus(1)
+end

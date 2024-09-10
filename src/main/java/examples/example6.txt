@@ -1,0 +1,10 @@
+class ArrayProcessor is
+    method squareAll(arr: Array[Integer]) is
+        var i: Integer(1)
+        while i.LessEqual(arr.Length) loop
+            var x: Integer := arr.get(i)
+            arr.set(i, x.Mult(x))
+            i := i.Plus(1)
+        end
+    end
+end

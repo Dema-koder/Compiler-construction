@@ -16,6 +16,7 @@ public class LexerEngine {
     }
 
     public List<Token> tokenize() {
+        Long position = 0L;
         String remainingInput = input;
 
         log.info(input);
@@ -31,17 +32,18 @@ public class LexerEngine {
                     String lexeme = matcher.group().trim();
 
                     if (tokenType != TokenType.WHITESPACE) {
-                        tokens.add(new Token(tokenType, lexeme));
+                        tokens.add(new Token(tokenType, lexeme, position));
                     }
 
                     remainingInput = remainingInput.substring(matcher.end());
+                    position += matcher.end();
                     matched = true;
                     break;
                 }
             }
 
             if (!matched) {
-                throw new RuntimeException("Неизвестный токен: " + remainingInput);
+                throw new RuntimeException("Unexpected token: " + remainingInput);
             }
         }
 

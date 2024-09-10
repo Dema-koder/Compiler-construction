@@ -1,0 +1,15 @@
+class Point is
+    var x: Integer
+    var y: Integer
+    this(x: Integer, y: Integer) is
+        this.x := x
+        this.y := y
+    end
+    method move(dx: Integer, dy: Integer) is
+        x := x.Plus(dx)
+        y := y.Plus(dy)
+    end
+end
+
+var p: Point(1, 2)
+p.move(3, 4)
