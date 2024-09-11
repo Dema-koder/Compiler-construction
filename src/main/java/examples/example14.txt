@@ -1,0 +1,50 @@
+class DataManager is
+    var dataArray: Array
+    var dataList: List[Integer]
+
+    this is
+        var i: Integer(1)
+        while i.LessEqual(dataArray.Length) loop
+            dataArray.set(i, i.Mult(2))
+            i := i.Plus(1)
+        end
+
+        this.dataList := dataArray.toList()
+    end
+
+    method sortData is
+        var sortedList: List[Integer] := self.dataList
+        var i: Integer(1)
+        while i.LessEqual(sortedList.Length) loop
+            var j: Integer(i.Plus(1))
+            while j.LessEqual(sortedList.Length) loop
+                if sortedList.get(i).Greater(sortedList.get(j)) then
+                    var temp: Integer := sortedList.get(i)
+                    sortedList.set(i, sortedList.get(j))
+                    sortedList.set(j, temp)
+                end
+                j := j.Plus(1)
+            end
+            i := i.Plus(1)
+        end
+    end
+
+    method displayData is
+        var i: Integer(1)
+        while i.LessEqual(dataArray.Length) loop
+            print("Array Element ", i, ": ", dataArray.get(i))
+            i := i.Plus(1)
+        end
+
+        i := 1
+        while i.LessEqual(dataList.Length) loop
+            print("List Element ", i, ": ", dataList.get(i))
+            i := i.Plus(1)
+        end
+    end
+end
+
+var manager: DataManager := DataManager()
+manager.displayData()
+manager.sortData()
+manager.displayData()

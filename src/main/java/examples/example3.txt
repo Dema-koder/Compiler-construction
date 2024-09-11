@@ -3,7 +3,7 @@ class Person is
     var age: 30
 
     this(name: String, age: Integer) is
-        self.name := name
-        self.age := age
+        this.name := name
+        this.age := age
     end
 end
