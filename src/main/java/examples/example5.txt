@@ -1,7 +1,7 @@
 class LightSwitch is
     var state: Boolean(true)
 
-    method toggle is
+    method toggle() is
         if this.state then
             this.state := false
         else

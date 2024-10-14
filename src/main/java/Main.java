@@ -1,5 +1,7 @@
+import ast.ASTNode;
 import lexical.LexerEngine;
-import lexical.Token;
+import sintax.SintaxisAnalyzer;
+import token.Token;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -8,7 +10,7 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) throws FileNotFoundException {
-        Scanner scanner = new Scanner(new File("/Users/demanzverev/IdeaProjects/compiler-construction/src/main/java/examples/example1.txt"));
+        Scanner scanner = new Scanner(new File("/Users/danii/IdeaProjects/compiler-construction/src/main/java/examples/example5.txt"));
 
         StringBuilder builder = new StringBuilder();
         while (scanner.hasNextLine()) {
@@ -24,5 +26,9 @@ public class Main {
         for (Token token : tokens) {
             System.out.println(token);
         }
+
+        SintaxisAnalyzer parser = new SintaxisAnalyzer(tokens);
+        ASTNode root = parser.parse();
+        System.out.println(root.toString());
     }
 }

@@ -1,5 +1,3 @@
-var 4a123
-
 class Animal is
     method speak: String is
         return "Generic sound"

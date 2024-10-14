@@ -1,4 +1,4 @@
-package lexical;
+package token;
 
 public enum TokenType {
     PROGRAM("Program"),

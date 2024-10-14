@@ -1,6 +1,6 @@
 class Person is
-    var name: "John Doe"
-    var age: 30
+    var name: String := "John Doe"
+    var age: Integer := 30
 
     this(name: String, age: Integer) is
         this.name := name

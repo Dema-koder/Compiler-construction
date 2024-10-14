@@ -1,4 +1,4 @@
-package lexical;
+package token;
 
 public record Token(TokenType type, String value, Long position) {
 

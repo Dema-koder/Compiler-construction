@@ -1,6 +1,10 @@
-method calculateDistance(x1: Real, y1: Real, x2: Real, y2: Real
-    var dx: Real := x2.Minus(x1)
-    var dy: Real := y2.Minus(y1)
-    return dx.Mult(dx).Plus(dy.Mult(dy)).toReal.Sqrt()
+class Main is
+    method calculateDistance(x1: Real, y1: Real, x2: Real, y2: Real) Real is
+        var dx: Real := x2.Minus(x1)
+        var dy: Real := y2.Minus(y1)
+        return dx.Mult(dx).Plus(dy.Mult(dy)).toReal().Sqrt()
+    end
+    method main() is
+        var dist: Real := calculateDistance(1, 2, 4, 6)
+    end
 end
-var dist: Real := calculateDistance(1.0, 2.0, 4.0, 6.0)
