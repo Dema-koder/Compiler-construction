@@ -4,10 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ASTNode {
-    private String nodeType;
-    private String nodeName;
-    private String nodeTypeInfo;
-    private List<ASTNode> children;
+    private final String nodeType;
+    private final String nodeName;
+    private final String nodeTypeInfo;
+    private final List<ASTNode> children;
+    private ASTNode parent;
 
     public ASTNode(String nodeType) {
         this(nodeType, null, null);
@@ -30,6 +31,30 @@ public class ASTNode {
 
     public void addChildren(List<ASTNode> children) {
         this.children.addAll(children);
+    }
+
+    public void setParent(ASTNode parent) {
+        this.parent = parent;
+    }
+
+    public ASTNode getParent() {
+        return parent;
+    }
+
+    public String getNodeType() {
+        return nodeType;
+    }
+
+    public String getNodeName() {
+        return nodeName;
+    }
+
+    public String getNodeTypeInfo() {
+        return nodeTypeInfo;
+    }
+
+    public List<ASTNode> getChildren() {
+        return children;
     }
 
     @Override
