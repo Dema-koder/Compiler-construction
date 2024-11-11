@@ -36,8 +36,8 @@ public enum TokenType {
     BOOLEAN("Boolean"),
 
     IDENTIFIER("[a-zA-Z_][a-zA-Z0-9_]*"),
-    INTEGER_LITERAL("\\d+"),
     REAL_LITERAL("\\d+\\.\\d+"),
+    INTEGER_LITERAL("\\d+"),
     STRING_LITERAL("\"([^\"]*)\""),
     BOOLEAN_LITERAL("true|false"),
 
