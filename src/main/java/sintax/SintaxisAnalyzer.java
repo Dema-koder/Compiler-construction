@@ -341,7 +341,7 @@ public class SintaxisAnalyzer {
             value = parseExpression();
         }
 
-        ASTNode varNode = new ASTNode("VarDeclaration", varName, varType);
+        ASTNode varNode = new ASTNode("Declaration", varName, varType);
         if (value != null) {
             varNode.addChild(value);
         }
