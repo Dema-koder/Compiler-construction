@@ -1,4 +1,5 @@
 import ast.ASTNode;
+import bytecode.BytecodeGenerator;
 import lexical.LexerEngine;
 import semantic.SemanticAnalyzer;
 import sintax.SintaxisAnalyzer;
@@ -6,6 +7,7 @@ import token.Token;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.util.List;
 import java.util.Scanner;
 
@@ -13,7 +15,7 @@ public class Main {
     public static void main(String[] args) throws FileNotFoundException {
         try {
 
-            Scanner scanner = new Scanner(new File("/Users/alenamaksimova/Desktop/Compiler-construction-main/src/main/java/examples/example2.txt"));
+            Scanner scanner = new Scanner(new File("/Users/demanzverev/IdeaProjects/compiler-construction/src/main/java/examples/example7.txt"));
 
             StringBuilder builder = new StringBuilder();
             while (scanner.hasNextLine()) {
@@ -33,15 +35,19 @@ public class Main {
             SintaxisAnalyzer parser = new SintaxisAnalyzer(tokens);
             ASTNode root = parser.parse();
             System.out.println(root.toString());
+            System.out.println("sdkmcsdd");
 
-            SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer(root);
-            semanticAnalyzer.analyze();
+            // Генерация байткода
+            BytecodeGenerator bytecodeGenerator = new BytecodeGenerator();
+            var bytecode = bytecodeGenerator.generate(root);
 
-            System.out.println("Semantic analysis completed successfully.");
+            System.out.println("Bytecode: " + bytecode);
 
         } catch (FileNotFoundException e) {
             System.err.println("Source file not found: " + e.getMessage());
         } catch (RuntimeException e) {
+            System.err.println("Error: " + e.getMessage());
+        } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());
         }
     }
