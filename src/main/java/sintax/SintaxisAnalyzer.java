@@ -315,7 +315,7 @@ public class SintaxisAnalyzer {
             expect(TokenType.RIGHT_PAREN);
         }
 
-        ASTNode varNode = new ASTNode("VarDeclaration", varName, "this");
+        ASTNode varNode = new ASTNode("VarAssignment", varName, "this");
         if (value != null) {
             varNode.addChild(value);
         }
