@@ -10,10 +10,3 @@ class Point is
         y := y.Plus(dy)
     end
 end
-
-class Main is
-    method main() is
-        var p: Point(1, 2)
-        p.move(3, 4)
-    end
-end

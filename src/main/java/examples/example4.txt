@@ -1,7 +1,13 @@
 class Circle is
-    var radius: 5.0
+    var radius: Real
+    var pi: Real
 
-    method area: Real is
-        return 3.14.Mult(self.radius).Mult(self.radius)
+    this(radius: Real) is
+        radius := 5
+        pi := 3
+    end
+
+    method area() Real is
+        return pi.Mult(radius).Mult(radius)
     end
 end

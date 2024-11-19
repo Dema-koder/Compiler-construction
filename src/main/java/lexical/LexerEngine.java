@@ -22,7 +22,7 @@ public class LexerEngine {
         Long position = 0L;
         String remainingInput = input;
 
-        log.info(input);
+        //log.info(input);
 
         while (!remainingInput.isEmpty()) {
             boolean matched = false;

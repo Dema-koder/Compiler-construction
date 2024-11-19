@@ -30,8 +30,8 @@ public class BytecodeGenerator {
 
         for (ASTNode child : classNode.getChildren()) {
             switch (child.getNodeType()) {
-                case "VarDeclaration":
-                    generateField(child);
+                case "Declaration":
+                    generateField(className, child);
                     break;
                 case "Constructor":
                     generateConstructor(className, child);
@@ -45,7 +45,7 @@ public class BytecodeGenerator {
         }
     }
 
-    private void generateField(ASTNode varNode) {
+    private void generateField(String className, ASTNode varNode) {
         String fieldName = varNode.getNodeName();
         String fieldType = mapType(varNode.getNodeTypeInfo());
         bytecode.append(".field private ").append(fieldName).append(" ").append(fieldType).append("\n");
@@ -61,12 +61,20 @@ public class BytecodeGenerator {
         }
 
         bytecode.append(")V\n");
+        bytecode.append("    .limit stack 2\n");
+        bytecode.append("    .limit locals ").append(constructorNode.getChildren().size() + 1).append("\n");
         bytecode.append("    aload_0\n");
         bytecode.append("    invokespecial java/lang/Object/<init>()V\n");
 
+        int localIndex = 1;
         for (ASTNode child : constructorNode.getChildren()) {
-            if ("VarDeclaration".equals(child.getNodeType())) {
-                generateAssignment(child);
+            if ("Assignment".equals(child.getNodeType())) {
+                ASTNode targetNode = child.getChildren().get(0);
+                if ("this".equals(child.getNodeTypeInfo())) {
+                    bytecode.append("    aload_0\n");
+                    bytecode.append("    iload_").append(localIndex++).append("\n");
+                    bytecode.append("    putfield ").append(className).append("/").append(targetNode.getNodeName()).append(" I\n");
+                }
             }
         }
 
@@ -75,6 +83,7 @@ public class BytecodeGenerator {
     }
 
     private void generateMethod(String className, ASTNode methodNode) {
+        String returnType = "V";
         String methodName = methodNode.getNodeName();
         bytecode.append("\n.method public ").append(methodName).append("(");
 
@@ -83,67 +92,109 @@ public class BytecodeGenerator {
                 bytecode.append(mapType(arg.getNodeTypeInfo()));
             }
         }
-
-        bytecode.append(")V\n");
+        for (ASTNode child : methodNode.getChildren()) {
+            if ("ReturnType".equals(child.getNodeType())) {
+                returnType = mapType(child.getNodeName());
+            }
+        }
+        bytecode.append(")").append(returnType).append("\n");
+        bytecode.append("    .limit stack 3\n");
+        bytecode.append("    .limit locals 3\n");
 
         for (ASTNode child : methodNode.getChildren()) {
             switch (child.getNodeType()) {
                 case "Assignment":
-                    generateAssignment(child.getChildren().get(0));
+                    generateAssignment(child, className);
                     break;
                 case "MethodCall":
                     generateMethodCall(child);
                     break;
                 case "Argument":
                     break;
+                case "ReturnType":
+                    break;
+                case "ReturnStatement":
+                    generateReturnStatement(child, returnType);
+                    break;
                 default:
                     throw new UnsupportedOperationException("Unknown method element: " + child.getNodeType());
             }
         }
-
         bytecode.append("    return\n");
         bytecode.append(".end method\n");
     }
 
-    private void generateAssignment(ASTNode assignNode) {
+    private void generateReturnStatement(ASTNode returnNode, String returnType) {
+        if (!"V".equals(returnType)) {
+            ASTNode returnExpression = returnNode.getChildren().get(0);
+            generateExpression(returnExpression);
 
-
-        // Первый потомок - это цель (переменная или поле объекта)
-        ASTNode targetNode = assignNode;
-
-        // Если это идентификатор, просто используем его
-        if ("Identifier".equals(targetNode.getNodeType())) {
-            String varName = targetNode.getNodeName();
-
-            // Второй потомок - это выражение (например, метод вызова или литерал)
-            ASTNode expressionNode = assignNode.getChildren().get(1);
-            generateExpression(expressionNode);
-
-            // Генерация байткода для присваивания переменной
-            bytecode.append("    putfield ").append(varName).append("\n");
+            switch (returnType) {
+                case "I":
+                    bytecode.append("    ireturn\n");
+                    break;
+                case "Ljava/lang/String;":
+                case "[I":
+                    bytecode.append("    areturn\n");
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Unsupported return type: " + returnType);
+            }
         }
-        // Если это VarDeclaration с "this", то нужно обрабатывать как поле объекта
-        else if ("VarDeclaration".equals(targetNode.getNodeType()) && "this".equals(targetNode.getNodeTypeInfo())) {
-            String varName = targetNode.getNodeName();
+    }
 
-            // Второй потомок - выражение (например, вызов метода)
-            ASTNode expressionNode = assignNode.getChildren().get(0);
-            generateExpression(expressionNode);
+    private void generateAssignment(ASTNode assignNode, String className) {
+        ASTNode targetNode = assignNode.getChildren().get(0);
 
-            // Генерация байткода для присваивания полю объекта
-            bytecode.append("    putfield this.").append(varName).append("\n");
+        if (assignNode.getChildren().size() == 1) {
+            if ("Identifier".equals(targetNode.getNodeType()) && "this".equals(assignNode.getNodeTypeInfo())) {
+                String fieldName = targetNode.getNodeName();
+
+                bytecode.append("    aload_0\n");
+                bytecode.append("    aload_1\n");
+                bytecode.append("    putfield ").append(className).append("/").append(fieldName).append(" I\n");
+            } else {
+                throw new IllegalArgumentException("Unexpected single child in assignment node: " + targetNode.getNodeType());
+            }
+        }
+        else if (assignNode.getChildren().size() == 2) {
+            ASTNode expressionNode = assignNode.getChildren().get(1);
+
+            if ("Identifier".equals(targetNode.getNodeType())) {
+                String varName = targetNode.getNodeName();
+
+                generateExpression(expressionNode);
+
+                bytecode.append("    astore_").append(varName).append("\n");
+            } else if ("Declaration".equals(targetNode.getNodeType()) && "this".equals(assignNode.getNodeTypeInfo())) {
+                String fieldName = targetNode.getNodeName();
+
+                generateExpression(expressionNode);
+
+                bytecode.append("    aload_0\n");
+                bytecode.append("    swap\n");
+                bytecode.append("    putfield ").append(className).append("/").append(fieldName).append(" I\n");
+            } else {
+                throw new IllegalArgumentException("Unknown assignment target type: " + targetNode.getNodeType());
+            }
         } else {
-            throw new IllegalArgumentException("Unknown assignment target type: " + targetNode.getNodeType());
+            throw new IllegalArgumentException("Assignment node must have 1 or 2 children, but has " + assignNode.getChildren().size());
         }
     }
 
     private void generateMethodCall(ASTNode methodCallNode) {
-        ASTNode target = methodCallNode.getChildren().get(0);
+        String methodName = methodCallNode.getNodeName();
+
         bytecode.append("    aload_0\n");
-        for (int i = 1; i < methodCallNode.getChildren().size(); i++) {
-            generateExpression(methodCallNode.getChildren().get(i));
+
+        for (ASTNode argumentNode : methodCallNode.getChildren()) {
+            generateExpression(argumentNode);
         }
-        bytecode.append("    invokevirtual ").append(target.getNodeName()).append("\n");
+
+        if (methodName.equals("Plus")) {
+
+        }
+        bytecode.append("    invokevirtual ").append(methodName).append("()I\n");
     }
 
     private void generateExpression(ASTNode exprNode) {
@@ -151,12 +202,15 @@ public class BytecodeGenerator {
             case "NumberLiteral":
                 bytecode.append("    ldc ").append(exprNode.getNodeName()).append("\n");
                 break;
+
             case "Identifier":
                 bytecode.append("    aload_").append(exprNode.getNodeName()).append("\n");
                 break;
+
             case "MethodCall":
                 generateMethodCall(exprNode);
                 break;
+
             default:
                 throw new UnsupportedOperationException("Unknown expression type: " + exprNode.getNodeType());
         }
@@ -168,6 +222,8 @@ public class BytecodeGenerator {
                 return "I";
             case "String":
                 return "Ljava/lang/String;";
+            case "Array[Integer]":
+                return "[I";
             default:
                 throw new IllegalArgumentException("Unsupported type: " + type);
         }

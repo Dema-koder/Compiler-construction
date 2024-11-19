@@ -10,7 +10,7 @@ class Main is
         end
     end
     method main() is
-        var numbers: Array
+        var numbers: Array[Integer]
         numbers.set(1, 2)
         numbers.set(2, 3)
         numbers.set(3, 4)
