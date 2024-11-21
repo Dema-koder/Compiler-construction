@@ -13,7 +13,7 @@ public class Main {
     public static void main(String[] args) throws FileNotFoundException {
         try {
 
-            Scanner scanner = new Scanner(new File("/Users/alenamaksimova/Desktop/Compiler-construction-main/src/main/java/examples/example2.txt"));
+            Scanner scanner = new Scanner(new File("/Users/alenamaksimova/Desktop/Compiler-construction/src/main/java/examples/example6.txt"));
 
             StringBuilder builder = new StringBuilder();
             while (scanner.hasNextLine()) {
@@ -34,8 +34,8 @@ public class Main {
             ASTNode root = parser.parse();
             System.out.println(root.toString());
 
-            SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer(root);
-            semanticAnalyzer.analyze();
+            SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer();
+            semanticAnalyzer.analyze(root);
 
             System.out.println("Semantic analysis completed successfully.");
 
