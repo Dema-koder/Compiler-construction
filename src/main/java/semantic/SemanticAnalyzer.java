@@ -55,8 +55,13 @@ public class SemanticAnalyzer {
 
         symbolTable.clear(); // New symbol table for method scope
 
+        String returnType = null; // Track the return type
+
         for (ASTNode child : methodNode.getChildren()) {
             switch (child.getNodeType()) {
+                case "ReturnType":
+                    returnType = analyzeReturnType(child);
+                    break;
                 case "argument":
                     analyzeArgument(child);
                     break;
@@ -69,12 +74,58 @@ public class SemanticAnalyzer {
                 case "MethodCall":
                     analyzeMethodCall(child);
                     break;
+                case "ReturnStatement":
+                    analyzeReturnStatement(child, returnType);
+                    break;
                 case "assignment":
                     analyzeAssignment(child);
                     break;
                 default:
                     throw new RuntimeException("Unexpected method element: " + child.getNodeType());
             }
+        }
+    }
+
+    private String analyzeReturnType(ASTNode returnTypeNode) {
+        String type = returnTypeNode.getNodeName();
+        System.out.println("Method return type: " + type);
+        return type;
+    }
+
+    private void analyzeReturnStatement(ASTNode returnNode, String expectedType) {
+        System.out.println("Analyzing return statement");
+        if (expectedType == null) {
+            throw new RuntimeException("Method return type not declared before return statement");
+        }
+
+        if (returnNode.getChildren().isEmpty()) {
+            throw new RuntimeException("Return statement must have a value");
+        }
+
+        ASTNode returnValue = returnNode.getChildren().get(0);
+        String returnValueType = getExpressionType(returnValue);
+
+        if (!expectedType.equals(returnValueType)) {
+            throw new RuntimeException("Return type mismatch: expected " + expectedType + ", got " + returnValueType);
+        }
+    }
+
+    private String getExpressionType(ASTNode expressionNode) {
+        switch (expressionNode.getNodeType()) {
+            case "StringLiteral":
+                return "String";
+            case "NumberLiteral":
+                return "Integer";
+            case "BooleanLiteral":
+                return "Boolean";
+            case "identifier":
+                String identifierType = symbolTable.get(expressionNode.getNodeName());
+                if (identifierType == null) {
+                    throw new RuntimeException("Undefined identifier: " + expressionNode.getNodeName());
+                }
+                return identifierType;
+            default:
+                throw new RuntimeException("Unknown expression type: " + expressionNode.getNodeType());
         }
     }
 

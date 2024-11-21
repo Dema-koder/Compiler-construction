@@ -1,5 +1,5 @@
 class Shape is
-    method area() Real is
+    method area(): Real is
         return 0.0
     end
 end
