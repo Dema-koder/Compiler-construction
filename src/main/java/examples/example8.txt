@@ -3,12 +3,18 @@ class Shape is
         return 0
     end
 end
-class Circle is
+class Circle extends Shape is
     var radius: Real
     this(radius: Real) is
         this.radius := radius
     end
     method area() Real is
         return radius.Mult(radius).Mult(3)
+    end
+end
+class Main is
+    method main() is
+        var c: Circle(5.0)
+        var a: Real := c.area()
     end
 end

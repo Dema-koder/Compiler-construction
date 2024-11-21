@@ -3,7 +3,7 @@ class Main is
     end
     method squareElements(arr: Array[Integer]) is
         var i: Integer(1)
-        while i.LessEqual(arr.Length) loop
+        while i.LessEqual(6) loop
             var x: Integer := arr.get(i)
             arr.set(i, x.Mult(x))
             i := i.Plus(1)
