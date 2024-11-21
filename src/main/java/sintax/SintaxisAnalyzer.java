@@ -62,10 +62,17 @@ public class SintaxisAnalyzer {
     private ASTNode parseClass() {
         expect(TokenType.CLASS);
         String className = currentToken().value();
-        expect(TokenType.IDENTIFIER);
-        expect(TokenType.IS);
 
         ASTNode classNode = new ASTNode("class", className);
+
+        expect(TokenType.IDENTIFIER);
+        if (check(TokenType.EXTENDS)) {
+            expect(TokenType.EXTENDS);
+            String extendsClassName = currentToken().value();
+            expect(TokenType.IDENTIFIER);
+            classNode.addChild(new ASTNode("extends", extendsClassName));
+        }
+        expect(TokenType.IS);
 
         // Парсим конструкторы и методы
         while (!check(TokenType.END)) {
@@ -281,6 +288,7 @@ public class SintaxisAnalyzer {
 
 
     private ASTNode parseStatement() {
+        System.out.println("284" + currentToken());
         if (check(TokenType.VAR)) {
             return parseVarDeclaration();
         } else if (check(TokenType.IDENTIFIER)) {
@@ -292,6 +300,7 @@ public class SintaxisAnalyzer {
         } else if (check(TokenType.IF)) {
             return parseIfStatement();
         } else if (check(TokenType.RETURN)) {
+            System.out.println("296" + currentToken());
             return parseReturnStatement();
         } else {
             throw new RuntimeException("Unexpected statement: " + currentToken());
@@ -448,6 +457,10 @@ public class SintaxisAnalyzer {
             String string = currentToken().value();
             nextToken();
             return new ASTNode("StringLiteral", string);
+        } else if (check(TokenType.REAL_LITERAL)) {
+            String number = currentToken().value();
+            nextToken();
+            return new ASTNode("RealLiteral", number);
         }
         return null;
     }
