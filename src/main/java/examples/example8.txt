@@ -1,6 +1,6 @@
 class Shape is
     method area() Real is
-        return 0
+        return 0.0
     end
 end
 class Circle extends Shape is
