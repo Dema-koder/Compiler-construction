@@ -15,7 +15,7 @@ public class Main {
     public static void main(String[] args) throws FileNotFoundException {
         try {
 
-            Scanner scanner = new Scanner(new File("/Users/demanzverev/IdeaProjects/compiler-construction/src/main/java/examples/example3.txt"));
+            Scanner scanner = new Scanner(new File("/Users/demanzverev/IdeaProjects/compiler-construction/src/main/java/examples/example15.txt"));
 
             StringBuilder builder = new StringBuilder();
             while (scanner.hasNextLine()) {
@@ -32,14 +32,6 @@ public class Main {
                 System.out.println(token);
             }
 
-            SintaxisAnalyzer parser = new SintaxisAnalyzer(tokens);
-            ASTNode root = parser.parse();
-            System.out.println(root.toString());
-
-            BytecodeGenerator bytecodeGenerator = new BytecodeGenerator();
-            var bytecode = bytecodeGenerator.generate(root);
-
-            System.out.println("Bytecode: " + bytecode);
 
         } catch (FileNotFoundException e) {
             System.err.println("Source file not found: " + e.getMessage());

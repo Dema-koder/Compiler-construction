@@ -28,18 +28,19 @@ public class LexerEngine {
             boolean matched = false;
 
             for (TokenType tokenType : TokenType.values()) {
-                Pattern pattern = Pattern.compile("^" + tokenType.pattern);
+                Pattern pattern = Pattern.compile("^(" + tokenType.pattern + ")");
                 Matcher matcher = pattern.matcher(remainingInput);
 
                 if (matcher.find()) {
+                    System.out.println(matcher.group());
                     String lexeme = matcher.group().trim();
 
                     if (tokenType != TokenType.WHITESPACE) {
                         tokens.add(new Token(tokenType, lexeme, position));
                     }
 
-                    remainingInput = remainingInput.substring(matcher.end());
-                    position += matcher.end();
+                    remainingInput = remainingInput.substring(matcher.group().length());
+                    position += matcher.group().length();
                     matched = true;
                     break;
                 }
