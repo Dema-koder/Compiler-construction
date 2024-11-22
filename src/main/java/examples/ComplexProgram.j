@@ -1,6 +1,8 @@
 .class public ComplexProgram
 .super java/lang/Object
 
+.field private counter I
+.field private message Ljava/lang/String;
 
 .method public <init>(ILjava/lang/String;)V
     .limit stack 2
