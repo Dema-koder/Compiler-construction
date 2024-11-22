@@ -4,7 +4,7 @@
 
 .method public <init>(ILjava/lang/String;)V
     .limit stack 2
-    .limit locals 3
+    .limit locals 5
     aload_0
     invokespecial java/lang/Object/<init>()V
     aload_0
@@ -18,22 +18,22 @@
 
 .method public process()V
     .limit stack 3
-    .limit locals 2
-    getstatic java/lang/System/out Ljava/io/PrintStream;
-    aload_0
-    getfield ComplexProgram/counter I
-    invokevirtual java/io/PrintStream/println(I)V
+    .limit locals 3
+getstatic java/lang/System/out Ljava/io/PrintStream;
+aload_0
+getfield ComplexProgram/counter I
+invokevirtual java/io/PrintStream/println(I)V
     return
 .end method
 .method public static main([Ljava/lang/String;)V
-    .limit stack 4
-    .limit locals 2
-    new ComplexProgram
-    dup
-    iconst_1
-    bipush 10
-    ldc "text"
-    invokespecial ComplexProgram/<init>(ILjava/lang/String;)V
-    invokevirtual ComplexProgram/process()I
+    .limit stack 3
+    .limit locals 3
+new ComplexProgram
+dup
+iconst_1
+bipush 10
+ldc "text"
+invokespecial ComplexProgram/<init>(ILjava/lang/String;)V
+    invokevirtual ComplexProgram/process()V
     return
 .end method
