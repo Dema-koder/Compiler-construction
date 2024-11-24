@@ -288,7 +288,6 @@ public class SintaxisAnalyzer {
 
 
     private ASTNode parseStatement() {
-        System.out.println("284" + currentToken());
         if (check(TokenType.VAR)) {
             return parseVarDeclaration();
         } else if (check(TokenType.IDENTIFIER)) {
@@ -300,7 +299,6 @@ public class SintaxisAnalyzer {
         } else if (check(TokenType.IF)) {
             return parseIfStatement();
         } else if (check(TokenType.RETURN)) {
-            System.out.println("296" + currentToken());
             return parseReturnStatement();
         } else {
             throw new RuntimeException("Unexpected statement: " + currentToken());
@@ -364,15 +362,6 @@ public class SintaxisAnalyzer {
 
         ASTNode leftHandSide = new ASTNode("identifier", identifier);
 
-        while (check(TokenType.DOT)) {
-            nextToken();
-            String memberName = currentToken().value();
-            expect(TokenType.IDENTIFIER);
-            ASTNode memberAccessNode = new ASTNode("MemberAccess", memberName);
-            memberAccessNode.addChild(leftHandSide);
-            leftHandSide = memberAccessNode;
-        }
-
         if (check(TokenType.ASSIGN)) {
             expect(TokenType.ASSIGN);
             ASTNode value = parseExpression();
@@ -382,6 +371,12 @@ public class SintaxisAnalyzer {
             return assignmentNode;
         } else if (check(TokenType.LEFT_PAREN)) {
             return parseMethodCall(identifier);
+        } else if (check(TokenType.DOT)) {
+            expect(TokenType.DOT);
+            String methodName = currentToken().value();
+            expect(TokenType.IDENTIFIER);
+            leftHandSide.addChild(parseMethodCall(methodName));
+            return leftHandSide;
         } else {
             throw new RuntimeException("Unexpected token in assignment or method call: " + currentToken());
         }
@@ -437,7 +432,14 @@ public class SintaxisAnalyzer {
 
 
     private ASTNode parsePrimary() {
-        if (check(TokenType.IDENTIFIER)) {
+        if (check(TokenType.THIS)) {
+            expect(TokenType.THIS);
+            expect(TokenType.DOT);
+            ASTNode primary = new ASTNode("FieldAccess", "this");
+            ASTNode in = parseExpression();
+            primary.addChild(in);
+            return primary;
+        } else if (check(TokenType.IDENTIFIER)) {
             String name = currentToken().value();
             nextToken();
 
@@ -462,7 +464,7 @@ public class SintaxisAnalyzer {
             nextToken();
             return new ASTNode("RealLiteral", number);
         }
-        return null;
+        return new ASTNode("error", "rorr");
     }
 
 
