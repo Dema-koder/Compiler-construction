@@ -1,9 +1,8 @@
 class ArrProcessor is
     method squareAll(arr: Array[Integer]) is
-        var i: Integer(1)
+        var i: Integer := 1
         while i.LessEqual(3) loop
             var x: Integer := arr.get(i)
-            arr.set(i, x.Mult(x))
             i := i.Plus(1)
         end
     end

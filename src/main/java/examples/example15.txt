@@ -1,47 +1,42 @@
 class Shape is
-    method area: Real is
+    method area() Real is
         return 0.0
     end
 
-    method displayInfo is
-        var areaValue: Real := this.area()
-        print("Area: ", areaValue)
+    method displayInfo() is
+        var areaValue: Real := area()
     end
 end
 
 class Rectangle extends Shape is
-    var width: Real(10.0)
-    var height: Real(5.0)
+    var width: Real := 10.0
+    var height: Real := 5.0
 
-    method area: Real is
-        return self.width.Mult(this.height)
-    end
-
-    method displayInfo is
-        print("Rectangle with width: ", this.width, " and height: ", this.height)
-        super.displayInfo()
+    method area() Real is
+        return width.Mult(6.0)
     end
 end
 
 class Circle extends Shape is
-    var radius: Real(7.0)
+    var radius: Real := 7.0
 
-    method area: Real is
-        return 3.14.Mult(this.radius).Mult(this.radius)
-    end
-
-    method displayInfo is
-        print("Circle with radius: ", self.radius)
-        super.displayInfo()
+    method area() Real is
+        return 3.14.Mult(5.0).Mult(6.0)
     end
 end
 
-var shapes: Array
-shapes.set(1, Rectangle())
-shapes.set(2, Circle())
+class Main is
+    this() is
+    end
 
-var i: Integer(1)
-while i.LessEqual(shapes.Length) loop
-    shapes.get(i).displayInfo()
-    i := i.Plus(1)
+    method main() is
+        var shapes: Array
+        shapes.set(1, Rectangle())
+        shapes.set(2, Circle())
+
+        var i: Integer := 1
+        while i.LessEqual(9) loop
+            i := i.Plus(1)
+        end
+    end
 end

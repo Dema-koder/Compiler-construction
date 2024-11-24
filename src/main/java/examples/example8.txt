@@ -1,5 +1,5 @@
 class Shape is
-    method area(): Real is
+    method area() Real is
         return 0.0
     end
 end
@@ -9,7 +9,7 @@ class Circle extends Shape is
         this.radius := radius
     end
     method area() Real is
-        return radius.Mult(radius).Mult(3)
+        return radius.Mult(radius).Mult(3.0)
     end
 end
 class Main is

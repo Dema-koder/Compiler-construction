@@ -3,7 +3,7 @@ class Main is
         return n.Rem(2).Equal(0)
     end
     method main() is
-        var x: Integer(10)
+        var x: Integer := 10
         var b: Boolean := itEven(x)
         if b then
             x := x.Plus(1)

@@ -4,7 +4,7 @@ class DataManager is
 
     this is
         var i: Integer(1)
-        while i.LessEqual(dataArray.Length) loop
+        while i.LessEqual(4) loop
             dataArray.set(i, i.Mult(2))
             i := i.Plus(1)
         end
