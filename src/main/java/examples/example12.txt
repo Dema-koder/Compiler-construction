@@ -1,16 +1,21 @@
-class Container[T] is
+class Container is
     var value: T
     this(value: T) is
         this.value := value
-end
-    method getValue(): T is
+    end
+    method getValue() T is
         return value
-end
+    end
     method setValue(newValue: T) is
         value := newValue
-end end
+    end
+end
 
+class Main is
+    method main() is
+        var intContainer: Container
+        var v: Integer := intContainer.getValue()
+        intContainer.setValue(100)
+    end
+end
 
-var intContainer: Container
-var v: Integer := intContainer.getValue()
-intContainer.setValue(100)

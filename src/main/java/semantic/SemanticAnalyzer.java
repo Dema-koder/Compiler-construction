@@ -141,7 +141,7 @@ public class SemanticAnalyzer {
                 case "WhileStatement":
                     analyzeWhile(child);
                     break;
-                case "IfStatement": // New case for IfStatement
+                case "IfStatement":
                     analyzeIfStatement(child, returnType);
                     break;
                 case "MethodCall":
@@ -153,10 +153,27 @@ public class SemanticAnalyzer {
                 case "assignment":
                     analyzeAssignment(child);
                     break;
+                case "identifier": // New case for identifier
+                    analyzeIdentifier(child);
+                    break;
                 default:
                     throw new RuntimeException("Unexpected method element: " + child.getNodeType());
             }
         }
+    }
+
+    private void analyzeIdentifier(ASTNode identifierNode) {
+        String identifierName = identifierNode.getNodeName();
+        System.out.println("Analyzing identifier: " + identifierName);
+
+        // Check if the identifier is declared in the current scope
+        if (!symbolTable.containsKey(identifierName)) {
+            throw new RuntimeException("Undeclared identifier: " + identifierName);
+        }
+
+        // Retrieve the type of the identifier from the symbol table
+        String identifierType = symbolTable.get(identifierName);
+        System.out.println("Identifier " + identifierName + " has type: " + identifierType);
     }
 
     private void analyzeIfStatement(ASTNode ifNode, String methodReturnType) {

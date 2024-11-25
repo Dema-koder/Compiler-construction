@@ -1,28 +1,17 @@
-class Node[T] is
-    var value: T
-    var next: Node[T]
-    this(value: T) is
-            this.value := value
-            this.next := null
+class Main is
+    method length(lst: Array[Integer]) Integer is
+        if lst.Equal(null) then
+            return 0
+        else
+            return 1.Plus(13)
+        end
     end
-end
-method length(lst: Node[Integer]): Integer is
-    if lst.Equal(null) then
-        return 0
-    else
-        return 1.Plus(length(lst.next))
-    end
-end
-
-Program : Main
-
-class Main() is
     this() is
-        var n1: Node
-        var n2: Node
-        var n3: Node
-        n1.next := n2
-        n2.next := n3
+        var n1: Integer := 10
+        var n2: Integer := 11
+        var n3: Integer := 12
+        n1 := n2
+        n2 := n3
         var len: Integer := length(n1)
     end
 end
