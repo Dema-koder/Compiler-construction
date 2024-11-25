@@ -1,8 +1,8 @@
 class DataManager is
-    var dataArray: Array
+    var dataArray: Array[Integer]
     var dataList: List[Integer]
 
-    this is
+    this() is
         var i: Integer(1)
         while i.LessEqual(4) loop
             dataArray.set(i, i.Mult(2))
@@ -12,8 +12,8 @@ class DataManager is
         this.dataList := dataArray.toList()
     end
 
-    method sortData is
-        var sortedList: List[Integer] := self.dataList
+    method sortData() is
+        var sortedList: List[Integer] := dataList
         var i: Integer(1)
         while i.LessEqual(sortedList.Length) loop
             var j: Integer(i.Plus(1))
@@ -29,7 +29,7 @@ class DataManager is
         end
     end
 
-    method displayData is
+    method displayData() is
         var i: Integer(1)
         while i.LessEqual(dataArray.Length) loop
             print("Array Element ", i, ": ", dataArray.get(i))
@@ -44,7 +44,11 @@ class DataManager is
     end
 end
 
-var manager: DataManager := DataManager()
-manager.displayData()
-manager.sortData()
-manager.displayData()
+class Main is
+    method main() is
+        var manager: DataManager := DataManager()
+        manager.displayData()
+        manager.sortData()
+        manager.displayData()
+    end
+end
