@@ -110,7 +110,7 @@ public class SemanticAnalyzer {
 
         symbolTable.clear(); // New symbol table for method scope
 
-        String returnType = null; // Track the return type
+        String returnType = "Void"; // Track the return type
 
         // Check for overridden methods
         if (classDef.getParentClass() != null) {
@@ -160,6 +160,7 @@ public class SemanticAnalyzer {
                     throw new RuntimeException("Unexpected method element: " + child.getNodeType());
             }
         }
+        globalSymbolTable.put(methodName, returnType);
     }
 
     private void analyzeIdentifier(ASTNode identifierNode) {
@@ -554,6 +555,9 @@ public class SemanticAnalyzer {
                 return "Void";
 
             default:
+                if (globalSymbolTable.get(methodName) != null) {
+                    return "Void";
+                }
                 throw new RuntimeException("Unknown array method: " + methodName);
         }
     }
