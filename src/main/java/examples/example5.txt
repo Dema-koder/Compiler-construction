@@ -5,9 +5,9 @@ class LightSwitch is
     end
     method toggle() is
         if this.state then
-            this.state := false
+            state := false
         else
-            this.state := true
+            state := true
         end
     end
 end
