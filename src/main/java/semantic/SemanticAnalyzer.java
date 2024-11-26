@@ -1,8 +1,6 @@
 package semantic;
 
 import ast.ASTNode;
-import token.Token;
-
 import java.util.*;
 
 public class SemanticAnalyzer {
@@ -40,17 +38,16 @@ public class SemanticAnalyzer {
     }
 
     private void removeUnusedVariables(ASTNode root) {
-        // A map to track variable declarations and their usage.
         Map<String, ASTNode> declaredVariables = new HashMap<>();
         Set<String> usedVariables = new HashSet<>();
 
-        // Step 1: Collect all declared variables and their nodes.
+        // Collect all declared variables and their nodes
         collectDeclaredVariables(root, declaredVariables);
 
-        // Step 2: Collect all used variables.
-        collectUsedVariables(root, usedVariables);
+        // Collect all used variables
+        collectUsedVariables(root, usedVariables, declaredVariables);
 
-        // Step 3: Remove declarations that are not in the used set.
+        // Remove declarations that are not in the used set
         for (Map.Entry<String, ASTNode> entry : declaredVariables.entrySet()) {
             if (!usedVariables.contains(entry.getKey())) {
                 ASTNode parent = entry.getValue().getParent();
@@ -62,7 +59,7 @@ public class SemanticAnalyzer {
     private void collectDeclaredVariables(ASTNode node, Map<String, ASTNode> declaredVariables) {
         if (node == null) return;
 
-        if (node.getNodeType().equals("var")) { // change
+        if (node.getNodeType().equals("declaration") || node.getNodeType().equals("argument")) {
             String variableName = node.getNodeName();
             declaredVariables.put(variableName, node);
         }
@@ -72,15 +69,19 @@ public class SemanticAnalyzer {
         }
     }
 
-    private void collectUsedVariables(ASTNode node, Set<String> usedVariables) {
+    private void collectUsedVariables(ASTNode node, Set<String> usedVariables, Map<String, ASTNode> declaredVariables) {
         if (node == null) return;
 
-        if (node.getNodeType().equals("var")) { // change
-            usedVariables.add(node.getNodeName());
+        if (node.getNodeType().equals("identifier")) {
+            String variableName = node.getNodeName();
+            if (declaredVariables.containsKey(variableName)) {
+                usedVariables.add(variableName); // Mark as used if it exists in declaredVariables
+            }
         }
 
+        // Recursively check all children
         for (ASTNode child : node.getChildren()) {
-            collectUsedVariables(child, usedVariables);
+            collectUsedVariables(child, usedVariables, declaredVariables);
         }
     }
 
@@ -97,8 +98,13 @@ public class SemanticAnalyzer {
         while (iterator.hasNext()) {
             ASTNode child = iterator.next();
 
-            if (foundReturn && (child.getNodeType().equals("method") || child.getNodeType().equals("class"))) {
+            if (foundReturn && (child.getNodeType().equals("method") || child.getNodeType().equals("class") || child.getNodeType().equals("constructor") || child.getNodeType().equals("ElseBlock"))) {
                 foundReturn = false;
+            }
+
+            if (child.getNodeType().equals("constructor") && child.getChildren().isEmpty()) {
+                iterator.remove(); // Remove unreachable node
+                continue;
             }
 
             // If a return statement was found in this scope, mark subsequent siblings as unreachable.
@@ -740,5 +746,4 @@ public class SemanticAnalyzer {
 
         return false;
     }
-
 }
