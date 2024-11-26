@@ -11,14 +11,14 @@ public class SemanticAnalyzer {
 
     private final Map<String, String> symbolTable = new HashMap<>();
     private final Map<String, ClassDefinition> classTable = new HashMap<>();
-    private final Map<String, String> globalSymbolTable = new HashMap<>();  // Global symbol table for global variables and methods
+    private final Map<String, String> globalSymbolTable = new HashMap<>();
 
     public void analyze(ASTNode root) {
         if (!root.getNodeType().equals("Program")) {
             throw new RuntimeException("Root node must be of type Program");
         }
 
-        // Pass 1: Collect class definitions
+        // Collect class definitions
         for (ASTNode child : root.getChildren()) {
             if (child.getNodeType().equals("class")) {
                 collectClassDefinition(child);
@@ -27,7 +27,7 @@ public class SemanticAnalyzer {
             }
         }
 
-        // Pass 2: Analyze class members
+        // Analyze class members
         for (ASTNode child : root.getChildren()) {
             if (child.getNodeType().equals("class")) {
                 child.setParent(root);
@@ -62,7 +62,7 @@ public class SemanticAnalyzer {
         List<String> argTypes = new ArrayList<>();
         for (ASTNode arg : constructorNode.getChildren()) {
             if ("argument".equals(arg.getNodeType())) {
-                argTypes.add(arg.getNodeTypeInfo()); // Assuming nodeTypeInfo stores the argument type
+                argTypes.add(arg.getNodeTypeInfo());
             }
         }
         return argTypes;
@@ -80,7 +80,7 @@ public class SemanticAnalyzer {
             switch (child.getNodeType()) {
                 case "declaration":
                     child.setParent(classNode);
-                    analyzeVarDeclaration(child); // Analyze class field declarations
+                    analyzeVarDeclaration(child);
                     break;
                 case "constructor":
                     child.setParent(classNode);
@@ -101,7 +101,6 @@ public class SemanticAnalyzer {
 
     private void analyzeConstructor(ASTNode constructorNode) {
         System.out.println("Analyzing constructor");
-        // Constructor-specific checks if needed
     }
 
     private void analyzeMethod(ASTNode methodNode, ClassDefinition classDef) {
@@ -153,7 +152,7 @@ public class SemanticAnalyzer {
                 case "assignment":
                     analyzeAssignment(child);
                     break;
-                case "identifier": // New case for identifier
+                case "identifier":
                     analyzeIdentifier(child);
                     break;
                 default:
@@ -183,7 +182,6 @@ public class SemanticAnalyzer {
         ASTNode thenBranch = null;
         ASTNode elseBranch = null;
 
-        // Find specific parts of the IfStatement
         for (ASTNode child : ifNode.getChildren()) {
             switch (child.getNodeType()) {
                 case "ThenBlock":
@@ -195,7 +193,6 @@ public class SemanticAnalyzer {
             }
         }
 
-        // Analyze then branch
         if (thenBranch != null) {
             for (ASTNode child : thenBranch.getChildren()) {
                 analyzeChildNode(child, methodReturnType);
@@ -204,7 +201,6 @@ public class SemanticAnalyzer {
             throw new RuntimeException("IfStatement is missing a then branch");
         }
 
-        // Analyze else branch (if present)
         if (elseBranch != null) {
             for (ASTNode child : elseBranch.getChildren()) {
                 analyzeChildNode(child, methodReturnType);
@@ -266,7 +262,7 @@ public class SemanticAnalyzer {
             case "RealLiteral":
                 return "Real";
             case "identifier":
-                // Check global symbol table first, then method-specific symbol table
+                // Check global symbol table first, then global symbol table
                 String identifierType = symbolTable.get(expressionNode.getNodeName());
                 if (identifierType == null) {
                     identifierType = globalSymbolTable.get(expressionNode.getNodeName());
@@ -276,8 +272,7 @@ public class SemanticAnalyzer {
                 }
                 return identifierType;
             case "MethodCall":
-                // This will handle the recursive method call analysis
-                return analyzeMethodCall(expressionNode); // Returns the return type of the method
+                return analyzeMethodCall(expressionNode);
             default:
                 throw new RuntimeException("Unknown expression type: " + expressionNode.getNodeType());
         }
@@ -327,7 +322,7 @@ public class SemanticAnalyzer {
         }
 
         ClassDefinition classDef = classTable.get(className);
-        List<String> expectedArgTypes = classDef.getConstructorArgTypes(); // Expected argument types
+        List<String> expectedArgTypes = classDef.getConstructorArgTypes();
         int expectedArgs = expectedArgTypes.size();
         int actualArgs = constructorCallNode.getChildren().size();
 
@@ -336,7 +331,6 @@ public class SemanticAnalyzer {
                     expectedArgs + " arguments, but got " + actualArgs);
         }
 
-        // Validate each argument
         for (int i = 0; i < actualArgs; i++) {
             ASTNode arg = constructorCallNode.getChildren().get(i);
             String actualArgType = getExpressionType(arg);
@@ -354,7 +348,6 @@ public class SemanticAnalyzer {
     private void analyzeWhile(ASTNode whileNode) {
         System.out.println("Analyzing WHILE loop");
 
-        // Process the rest of the children as the loop body
         for (int i = 1; i < whileNode.getChildren().size(); i++) {
             ASTNode child = whileNode.getChildren().get(i);
             switch (child.getNodeType()) {
@@ -380,12 +373,10 @@ public class SemanticAnalyzer {
 
         System.out.println("Assignment:");
 
-        // Analyze left-hand side
-        ASTNode lhs = assignmentNode.getChildren().get(0); // Assuming first child is the LHS
+        ASTNode lhs = assignmentNode.getChildren().get(0);
         analyzeExpression(lhs);
 
-        // Analyze right-hand side
-        ASTNode rhs = assignmentNode.getChildren().get(1); // Assuming second child is the RHS
+        ASTNode rhs = assignmentNode.getChildren().get(1);
         analyzeExpression(rhs);
     }
 
@@ -400,7 +391,6 @@ public class SemanticAnalyzer {
 
         System.out.println("Target type: " + targetType);
 
-        // Handle method calls based on the target type
         switch (targetType) {
             case "Real":
             case "Integer":
@@ -476,7 +466,7 @@ public class SemanticAnalyzer {
                 return "Boolean";
 
             default:
-                // Validate arguments for other numeric methods (e.g., Mult, Plus, Minus, Divide)
+                // Validate arguments for other numeric methods
                 validateArguments(methodCallNode, targetType);
                 return targetType;
         }
@@ -495,7 +485,6 @@ public class SemanticAnalyzer {
             if (args.size() != 3) {
                 throw new RuntimeException("Substring method expects 3 arguments, but got " + args.size());
             }
-            // Validate index arguments
             if (!"Integer".equals(getExpressionType(args.get(1))) || !"Integer".equals(getExpressionType(args.get(2)))) {
                 throw new RuntimeException("Substring index arguments must be of type Integer");
             }
@@ -588,20 +577,26 @@ public class SemanticAnalyzer {
                 System.out.println("RealLiteral: " + expressionNode.getNodeName());
                 break;
             case "identifier":
-                // Check if the identifier is valid (could enhance with a symbol table)
+                String identifierType = symbolTable.get(expressionNode.getNodeName());
+                if (identifierType == null && (!expressionNode.getNodeName().equals("true") && (!expressionNode.getNodeName().equals("false")))) {
+                    identifierType = globalSymbolTable.get(expressionNode.getNodeName());
+                    if (identifierType == null) {
+                        throw new RuntimeException("Undefined identifier: " + expressionNode.getNodeName());
+                    }
+                }
                 System.out.println("Identifier: " + expressionNode.getNodeName());
                 break;
             case "ConstructorCall":
-                analyzeConstructorCall(expressionNode); // Explicit call to analyzeConstructorCall
+                analyzeConstructorCall(expressionNode);
                 break;
             case "MethodCall":
                 System.out.println("MethodCall: " + expressionNode.getNodeName());
                 for (ASTNode child : expressionNode.getChildren()) {
-                    analyzeExpression(child); // Analyze method arguments
+                    analyzeExpression(child);
                 }
                 break;
             case "FieldAccess":
-                analyzeFieldAccess(expressionNode); // Explicit call to analyzeFieldAccess
+                analyzeFieldAccess(expressionNode);
                 break;
             case "BinaryOperation":
                 analyzeBinaryOperation(expressionNode);
@@ -645,20 +640,19 @@ public class SemanticAnalyzer {
 
         // If the parent node is a "Program" node, the variable is global
         if (parent != null && parent.getNodeType().equals("Program")) {
-            return true; // It's a global variable
+            return true;
         }
 
         // If the parent node is a "Method" or "Constructor" node, the variable is local
         if (parent != null && (parent.getNodeType().equals("method") || parent.getNodeType().equals("constructor"))) {
-            return false; // It's a local variable
+            return false;
         }
 
-        // If the parent node is a "Class" node, it could be a class-level variable, treat it as global if it's outside methods
+        // If the parent node is a "Class" node, it could be a class-level variable
         if (parent != null && parent.getNodeType().equals("class")) {
-            return true; // It's a global variable within the class
+            return true;
         }
 
-        // If we can't determine the scope, assume it might be local or needs more checks
         return false;
     }
 
