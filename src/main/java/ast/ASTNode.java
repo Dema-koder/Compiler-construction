@@ -27,6 +27,7 @@ public class ASTNode {
 
     public void addChild(ASTNode child) {
         this.children.add(child);
+        child.setParent(this);
     }
 
     public void addChildren(List<ASTNode> children) {
@@ -55,6 +56,12 @@ public class ASTNode {
 
     public List<ASTNode> getChildren() {
         return children;
+    }
+
+    public void removeChild(ASTNode child) {
+        if (children.remove(child)) {
+            child.setParent(null); // Clear the parent reference in the removed child.
+        }
     }
 
     @Override

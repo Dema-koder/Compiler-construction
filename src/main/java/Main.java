@@ -13,7 +13,7 @@ public class Main {
     public static void main(String[] args) throws FileNotFoundException {
         try {
 
-            Scanner scanner = new Scanner(new File("/Users/alenamaksimova/Desktop/Compiler-construction/src/main/java/examples/example15.txt"));
+            Scanner scanner = new Scanner(new File("/Users/alenamaksimova/Desktop/Compiler-construction/src/main/java/examples/example1.txt"));
 
             StringBuilder builder = new StringBuilder();
             while (scanner.hasNextLine()) {
@@ -36,8 +36,10 @@ public class Main {
 
             SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer();
             semanticAnalyzer.analyze(root);
+            semanticAnalyzer.optimize(root);
 
             System.out.println("Semantic analysis completed successfully.");
+            System.out.println(root.toString());
 
         } catch (FileNotFoundException e) {
             System.err.println("Source file not found: " + e.getMessage());

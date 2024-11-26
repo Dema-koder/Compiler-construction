@@ -1,11 +1,9 @@
 package semantic;
 
 import ast.ASTNode;
+import token.Token;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class SemanticAnalyzer {
 
@@ -34,6 +32,93 @@ public class SemanticAnalyzer {
                 analyzeClass(child);
             }
         }
+    }
+
+    public void optimize(ASTNode root) {
+        removeUnusedVariables(root);
+        removeUnreachableCode(root);
+    }
+
+    private void removeUnusedVariables(ASTNode root) {
+        // A map to track variable declarations and their usage.
+        Map<String, ASTNode> declaredVariables = new HashMap<>();
+        Set<String> usedVariables = new HashSet<>();
+
+        // Step 1: Collect all declared variables and their nodes.
+        collectDeclaredVariables(root, declaredVariables);
+
+        // Step 2: Collect all used variables.
+        collectUsedVariables(root, usedVariables);
+
+        // Step 3: Remove declarations that are not in the used set.
+        for (Map.Entry<String, ASTNode> entry : declaredVariables.entrySet()) {
+            if (!usedVariables.contains(entry.getKey())) {
+                ASTNode parent = entry.getValue().getParent();
+                parent.removeChild(entry.getValue());
+            }
+        }
+    }
+
+    private void collectDeclaredVariables(ASTNode node, Map<String, ASTNode> declaredVariables) {
+        if (node == null) return;
+
+        if (node.getNodeType().equals("var")) { // change
+            String variableName = node.getNodeName();
+            declaredVariables.put(variableName, node);
+        }
+
+        for (ASTNode child : node.getChildren()) {
+            collectDeclaredVariables(child, declaredVariables);
+        }
+    }
+
+    private void collectUsedVariables(ASTNode node, Set<String> usedVariables) {
+        if (node == null) return;
+
+        if (node.getNodeType().equals("var")) { // change
+            usedVariables.add(node.getNodeName());
+        }
+
+        for (ASTNode child : node.getChildren()) {
+            collectUsedVariables(child, usedVariables);
+        }
+    }
+
+    private void removeUnreachableCode(ASTNode root) {
+        traverseAndRemoveUnreachableCode(root);
+    }
+
+    private boolean traverseAndRemoveUnreachableCode(ASTNode node) {
+        if (node == null) return false;
+
+        boolean foundReturn = false;
+
+        Iterator<ASTNode> iterator = node.getChildren().iterator();
+        while (iterator.hasNext()) {
+            ASTNode child = iterator.next();
+
+            if (foundReturn && (child.getNodeType().equals("method") || child.getNodeType().equals("class"))) {
+                foundReturn = false;
+            }
+
+            // If a return statement was found in this scope, mark subsequent siblings as unreachable.
+            if (foundReturn) {
+                iterator.remove(); // Remove unreachable node
+                continue;
+            }
+
+            // Check if the child is a return statement
+            if (child.getNodeType().equals("ReturnStatement")) {
+                foundReturn = true;
+                // Process the subtree of the return statement itself
+                traverseAndRemoveUnreachableCode(child);
+            } else {
+                // If the child subtree has a return, this marks subsequent siblings unreachable.
+                foundReturn = traverseAndRemoveUnreachableCode(child);
+            }
+        }
+
+        return foundReturn;
     }
 
     private void collectClassDefinition(ASTNode classNode) {
