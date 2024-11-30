@@ -35,11 +35,11 @@ public enum TokenType {
     REAL("Real"),
     BOOLEAN("Boolean"),
 
+    BOOLEAN_LITERAL("true|false"),
     IDENTIFIER("[a-zA-Z_][a-zA-Z0-9_]*"),
     REAL_LITERAL("\\d+\\.\\d+"),
     INTEGER_LITERAL("\\d+"),
     STRING_LITERAL("\"([^\"]*)\""),
-    BOOLEAN_LITERAL("true|false"),
 
     WHITESPACE("[ \t\f\r\n]+");
 
