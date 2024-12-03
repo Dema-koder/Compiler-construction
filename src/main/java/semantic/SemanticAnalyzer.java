@@ -610,10 +610,10 @@ public class SemanticAnalyzer {
 
         List<ASTNode> args = methodCallNode.getChildren();
         if ("Not".equals(methodName)) {
-            if (args.size() != 2) {
+            if (args.size() != 1) {
                 throw new RuntimeException("Not method expects 1 argument, but got " + args.size());
             }
-            if (!"Boolean".equals(getExpressionType(args.get(1)))) {
+            if (!"Boolean".equals(getExpressionType(args.getFirst()))) {
                 throw new RuntimeException("Not argument must be of type Boolean");
             }
         } else {
