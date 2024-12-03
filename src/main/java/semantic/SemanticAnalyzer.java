@@ -175,7 +175,7 @@ public class SemanticAnalyzer {
                     break;
                 case "constructor":
                     child.setParent(classNode);
-                    analyzeConstructor(child);
+                    analyzeConstructor();
                     break;
                 case "method":
                     child.setParent(classNode);
@@ -190,8 +190,10 @@ public class SemanticAnalyzer {
         }
     }
 
-    private void analyzeConstructor(ASTNode constructorNode) {
+    private void analyzeConstructor() {
         System.out.println("Analyzing constructor");
+
+
     }
 
     private void analyzeMethod(ASTNode methodNode, ClassDefinition classDef) {
@@ -334,7 +336,7 @@ public class SemanticAnalyzer {
             throw new RuntimeException("Return statement must have a value");
         }
 
-        ASTNode returnValue = returnNode.getChildren().get(0);
+        ASTNode returnValue = returnNode.getChildren().getFirst();
         String returnValueType = getExpressionType(returnValue);
 
         if (!expectedType.equals(returnValueType)) {
@@ -492,8 +494,8 @@ public class SemanticAnalyzer {
 
         // Extract method name and determine the target type
         String methodName = methodCallNode.getNodeName();
-        String methodReturnType = null;
-        ASTNode targetNode = methodCallNode.getChildren().get(0);
+        String methodReturnType;
+        ASTNode targetNode = methodCallNode.getChildren().getFirst();
         String targetType = getExpressionType(targetNode);
 
         System.out.println("Target type: " + targetType);
@@ -713,10 +715,6 @@ public class SemanticAnalyzer {
         }
     }
 
-    private void analyzeLiteral(ASTNode literalNode) {
-        System.out.println("Analyzing literal: " + literalNode.getNodeName());
-    }
-
     private void analyzeFieldAccess(ASTNode fieldAccessNode) {
         System.out.println("Analyzing field access: " + fieldAccessNode.getNodeName());
         if (!symbolTable.containsKey(fieldAccessNode.getNodeName())) {
@@ -756,10 +754,6 @@ public class SemanticAnalyzer {
         }
 
         // If the parent node is a "Class" node, it could be a class-level variable
-        if (parent != null && parent.getNodeType().equals("class")) {
-            return true;
-        }
-
-        return false;
+        return parent != null && parent.getNodeType().equals("class");
     }
 }
