@@ -1,13 +1,7 @@
-class LightSwitch is
-    var state: Boolean
-    this(state: Boolean) is
-        this.state := state
+class Main is
+    method name(name: String, num: Integer) String is
     end
-    method toggle() is
-        if this.state then
-            state := false
-        else
-            state := true
-        end
+
+    method main() is
     end
 end

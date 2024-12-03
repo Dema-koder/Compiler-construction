@@ -223,7 +223,7 @@ public class SemanticAnalyzer {
                     returnType = analyzeReturnType(child);
                     break;
                 case "argument":
-                    analyzeArgument(child);
+                    analyzeArgument(child, methodNode);
                     break;
                 case "declaration":
                     analyzeVarDeclaration(child);
@@ -369,7 +369,7 @@ public class SemanticAnalyzer {
         }
     }
 
-    private void analyzeArgument(ASTNode argumentNode) {
+    private void analyzeArgument(ASTNode argumentNode, ASTNode parent) {
         String argName = argumentNode.getNodeName();
         String argType = argumentNode.getNodeTypeInfo();
 
@@ -377,6 +377,7 @@ public class SemanticAnalyzer {
             throw new RuntimeException("Argument already declared: " + argName);
         }
 
+        argumentNode.setParent(parent);
         symbolTable.put(argName, argType);
         System.out.println("Declared argument: " + argName + " of type " + argType);
     }
@@ -401,7 +402,22 @@ public class SemanticAnalyzer {
         // Analyze initializer if present
         for (ASTNode child : varDeclNode.getChildren()) {
             analyzeExpression(child);
+            String initializerType = child.getNodeType();
+
+            // Check for type compatibility
+            if (varType.equals("String") && !initializerType.equals("MethodCall") && !isTypeCompatible(varType, initializerType)) {
+                throw new RuntimeException("Type mismatch: Cannot assign a value of type " + initializerType +
+                        " to variable " + varName + " of type " + varType);
+            }
         }
+    }
+
+    private boolean isTypeCompatible(String varType, String valueType) {
+        if (varType.equals(valueType)) {
+            return true;
+        }
+
+        return varType.equals("String") && valueType.equals("StringLiteral");
     }
 
     private void analyzeConstructorCall(ASTNode constructorCallNode) {
