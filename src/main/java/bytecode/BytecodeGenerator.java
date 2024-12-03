@@ -4,10 +4,7 @@ import ast.ASTNode;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
 
 public class BytecodeGenerator {
@@ -21,8 +18,32 @@ public class BytecodeGenerator {
 
     private List<Param> params = new ArrayList<>();
 
+    private String ifNum = "A";
+
+    private String whileNum = "B";
+
     public BytecodeGenerator() {
         this.bytecode = new StringBuilder();
+        methods.put("getValue", new Method("getValue", "Integer", "", "LInteger;"));
+        methods.put("Plus", new Method("Plus", "Integer", "LInteger;", "LInteger;"));
+        methods.put("Minus", new Method("Minus", "Integer", "LInteger;", "LInteger;"));
+        methods.put("Mult", new Method("Mult", "Integer", "LInteger;", "LInteger;"));
+        methods.put("Div", new Method("Div", "Integer", "LInteger;", "LInteger;"));
+        methods.put("Rem", new Method("Rem", "Integer", "LInteger;", "LInteger;"));
+        methods.put("Less", new Method("Less", "Integer", "LInteger;", "LBoolean;"));
+        methods.put("LessEqual", new Method("LessEqual", "Integer", "LInteger;", "LBoolean;"));
+        methods.put("Greater", new Method("Greater", "Integer", "LInteger;", "LBoolean;"));
+        methods.put("GreaterEqual", new Method("GreaterEqual", "Integer", "LInteger;", "LBoolean;"));
+        methods.put("Equal", new Method("Equal", "Integer", "LInteger;", "LBoolean;"));
+        methods.put("toReal", new Method("toReal", "Integer", "", "LReal;"));
+        methods.put("toBoolean", new Method("toBoolean", "Integer", "", "LBoolean;"));
+        methods.put("UnaryMinus", new Method("UnaryMinus", "Integer", "", "LInteger;"));
+        methods.put("toInteger", new Method("toInteger", "Boolean", "", "LInteger;"));
+        methods.put("Or", new Method("Or", "Boolean", "LBoolean;", "LBoolean;"));
+        methods.put("And", new Method("And", "Boolean", "LBoolean;", "LBoolean;"));
+        methods.put("Xor", new Method("Xor", "Boolean", "LBoolean;", "LBoolean;"));
+        methods.put("Not", new Method("Not", "Boolean", "", "LBoolean;"));
+        methods.put("getBool", new Method("getBool", "Boolean", "", "Ljava/lang/String;"));
     }
 
     public void generate(ASTNode root) throws Exception {
@@ -37,7 +58,7 @@ public class BytecodeGenerator {
         }
     }
 
-    private void generateClass(ASTNode classNode) throws Exception {
+    private void generateClass(ASTNode classNode) {
         className = classNode.getNodeName();
         bytecode.append(".class public ").append(className).append("\n");
         bytecode.append(".super java/lang/Object\n\n");
@@ -91,8 +112,8 @@ public class BytecodeGenerator {
         }
 
         bytecode.append(")V\n");
-        bytecode.append("    .limit stack 10\n"); ////////////////////////
-        bytecode.append("    .limit locals 10\n");
+        bytecode.append("    .limit stack 1000\n"); ////////////////////////
+        bytecode.append("    .limit locals 1000\n");
         bytecode.append("    aload_0\n");
         bytecode.append("    invokespecial java/lang/Object/<init>()V\n");
 
@@ -106,7 +127,7 @@ public class BytecodeGenerator {
         bytecode.append(".end method\n");
     }
 
-    private void generateMethod(ASTNode methodNode) throws Exception {
+    private void generateMethod(ASTNode methodNode) {
         String methodName = methodNode.getNodeName();
         Method method = new Method();
         method.setName(methodName);
@@ -136,8 +157,8 @@ public class BytecodeGenerator {
             bytecode.append(")").append(returnType).append("\n");
         }
 
-        bytecode.append("    .limit stack 10\n");
-        bytecode.append("    .limit locals 10\n");
+        bytecode.append("    .limit stack 1000\n");
+        bytecode.append("    .limit locals 1000\n");
 
         bytecode.append("aload_0\n");
 
@@ -196,13 +217,13 @@ public class BytecodeGenerator {
                         break;
                     case "identifier":
                         var param2 = findParam(child2.getNodeName(), className);
-                        bytecode.append("aload_").append(param2.getLocalPosition()).append("\n");
+                        bytecode.append("aload").append((Integer.parseInt(param2.getLocalPosition()) > 3 ? " " : "_")).append(param2.getLocalPosition()).append("\n");
                         constructorType.append(param2.getType());
                         break;
                 }
             }
             bytecode.append("invokespecial ").append(target.getNodeName()).append("/<init>(").append(constructorType).append(")V\n");
-            bytecode.append("astore_").append(param.getLocalPosition()).append("\n");
+            bytecode.append("astore").append((Integer.parseInt(param.getLocalPosition()) > 3 ? " " : "_")).append(param.getLocalPosition()).append("\n");
         }
     }
 
@@ -218,13 +239,10 @@ public class BytecodeGenerator {
                 case "identifier":
                     var param = findParam(returnNode.getChildren().get(0).getNodeName(), className);
                     assert param != null;
-                    if (returnType.equals("I"))
-                        bytecode.append("iload_");
-                    else
-                        bytecode.append("aload_");
-                    bytecode.append(param.getLocalPosition()).append("\n");
+                    bytecode.append("aload");
+                    bytecode.append((Integer.parseInt(param.getLocalPosition()) > 3 ? " " : "_")).append(param.getLocalPosition()).append("\n");
                     break;
-                case "StringLiteral", "IntegerLiteral":
+                case "StringLiteral", "NumberLiteral":
                     bytecode.append("ldc ").append(returnNode.getChildren().get(0).getNodeName()).append("\n");
                     break;
                 case "FieldAccess":
@@ -250,7 +268,7 @@ public class BytecodeGenerator {
         for (ASTNode child : assignNode.getChildren()) {
             var param = findParam(assignNode.getNodeName(), className);
             switch (child.getNodeType()) {
-                case "NumberLiteral", "StringLiteral":
+                case "StringLiteral":
                     assert param != null;
                     bytecode.append("aload_0\n").append("ldc ")
                             .append(child.getNodeName()).append("\n")
@@ -259,9 +277,19 @@ public class BytecodeGenerator {
                             .append(param.getType())
                             .append("\n");
                     break;
+                case "NumberLiteral":
+                    bytecode.append("new Integer\ndup\n")
+                            .append("ldc ").append(child.getNodeName()).append("\n")
+                            .append("invokespecial Integer/<init>(I)V\n")
+                            .append("putfield ").append(className)
+                            .append("/").append(assignNode.getNodeName()).append(" ")
+                            .append(param.getType())
+                            .append("\n");
+                    break;
                 case "identifier":
                     assert param != null;
-                    bytecode.append("aload_0\n").append("iload_")
+                    bytecode.append("aload_0\n").append("aload")
+                            .append((Integer.parseInt((String) types.get(child.getNodeName())) > 3 ? " " : "_"))
                             .append(types.get(child.getNodeName()))
                             .append("\n").append("putfield ").append(className)
                             .append("/").append(assignNode.getNodeName()).append(" ")
@@ -281,105 +309,202 @@ public class BytecodeGenerator {
 
         switch (value.getNodeType()) {
             case "NumberLiteral", "StringLiteral":
-                bytecode.append("ldc ").append(value.getNodeName()).append("\n")
-                        .append("istore_").append(param.getLocalPosition()).append("\n");
+                bytecode.append("new Integer\n" +
+                                "dup\n").append("ldc ").append(value.getNodeName()).append("\n")
+                        .append("invokespecial Integer/<init>(I)V\n")
+                        .append("astore").append((Integer.parseInt(param.getLocalPosition()) > 3 ? " " : "_")).append(param.getLocalPosition()).append("\n");
                 break;
             case "MethodCall":
-                switch (value.getNodeName()) {
-                    case "Plus":
-                        for (ASTNode child : value.getChildren()) {
-                            switch (child.getNodeType()) {
-                                case "identifier" :
-                                    var localParam = findParam(child.getNodeName(), className);
-                                    assert localParam != null;
-                                    bytecode.append("iload_").append(localParam.getLocalPosition())
-                                            .append("\n");
-                                    break;
-                                case "IntegerLiteral":
-                                    bytecode.append("ldc ").append(child.getNodeName()).append("\n");
-                            }
-                        }
-                        bytecode.append("iadd\n").append("istore_").append(param.getLocalPosition()).append("\n");
-                        break;
-                    default:
-                        generateMethodCall(value);
-                        bytecode.append("istore_").append(param.getLocalPosition()).append("\n");
-                        break;
-                }
+                generateMethodCall(value);
+                bytecode.append("astore").append((Integer.parseInt(param.getLocalPosition()) > 3 ? " " : "_")).append(param.getLocalPosition()).append("\n");
+                break;
         }
     }
 
     private void generateMethodCall(ASTNode methodCallNode) {
         String methodName = methodCallNode.getNodeName();
-
+        if (methodName.equals("Plus") || methodName.equals("Minus") || methodName.equals("Mult")
+                || methodName.equals("Div") || methodName.equals("Rem") || methodName.equals("Less")
+                || methodName.equals("LessEqual") || methodName.equals("Greater") || methodName.equals("GreaterEqual")
+                || methodName.equals("Equal")) {
+            for (ASTNode child : methodCallNode.getChildren()) {
+                switch (child.getNodeType()) {
+                    case "identifier":
+                        var localParam = findParam(child.getNodeName(), className);
+                        assert localParam != null;
+                        if (localParam.getIsMethodParam())
+                            bytecode.append("aload").append((Integer.parseInt(localParam.getLocalPosition()) > 3 ? " " : "_")).append(localParam.getLocalPosition())
+                                    .append("\n");
+                        else
+                            bytecode.append("getfield ").append(className).append("/")
+                                    .append(localParam.getName()).append(localParam.getType()).append("\n");
+                        break;
+                    case "NumberLiteral":
+                        bytecode.append("ldc ").append(child.getNodeName()).append("\n");
+                        break;
+                }
+            }
+            bytecode.append("invokevirtual ").append(methods.get(methodName).getClassName()).append("/").append(methodName)
+                    .append("(").append(methods.get(methodName).getSignature()).append(")")
+                    .append(methods.get(methodName).getReturnType()).append("\n");
+        } else
         if (methodName.equals("print")) {
 
             bytecode.append("getstatic java/lang/System/out Ljava/io/PrintStream;\n");
 
             var param = findParam(methodCallNode.getChildren().get(0).getNodeName(), className);
 
+            var returnType = "";
             switch (methodCallNode.getChildren().get(0).getNodeType()) {
-                case "StringLiteral", "IntegerLiteral":
+                case "StringLiteral":
                     bytecode.append("ldc ").append(methodCallNode.getChildren().get(0).getNodeName()).append("\n");
+                    returnType = "Ljava/lang/String;";
+                    break;
+                case "NumberLiteral":
+                    bytecode.append("ldc ").append(methodCallNode.getChildren().get(0).getNodeName()).append("\n");
+                    returnType = "I";
                     break;
                 case "identifier":
-                    switch (param.getType()) {
-                        case "I":
-                            bytecode.append("iload_").append(param.getLocalPosition()).append("\n");
-                            break;
-                        default:
-                            bytecode.append("aload_").append(param.getLocalPosition()).append("\n");
-                            break;
-                    }
+                    bytecode.append("aload").append((Integer.parseInt(param.getLocalPosition()) > 3 ? " " : "_")).append(param.getLocalPosition()).append("\n");
+                    var param2 = findParam(methodCallNode.getChildren().get(0).getNodeName(), className);
+                    if (param2.getType().equals("LInteger;"))
+                        bytecode.append("invokevirtual Integer/getValue()I\n");
+                    if (param2.getType().equals("LBoolean;"))
+                        bytecode.append("invokevirtual Boolean/getBool()Ljava/lang/String;\n");
+                    break;
+                case "MethodCall":
                     break;
             }
-
-            bytecode.append("invokevirtual java/io/PrintStream/println(").append(param.getType()).append(")V\n");
-            return;
+            if (param != null) {
+                if (Objects.equals(param.getType(), "LInteger;"))
+                    returnType = "I";
+                else
+                    if (Objects.equals(param.getType(), "LBoolean;"))
+                        returnType = "Ljava/lang/String;";
+                    else
+                        returnType = param.getType();
+            }
+            bytecode.append("invokevirtual java/io/PrintStream/println(").append(returnType).append(")V\n");
         } else {
             for (ASTNode child : methodCallNode.getChildren()) {
                 var param = findParam(child.getNodeName(), className);
                 switch (child.getNodeType()) {
-                    case "StringLiteral", "IntegerLiteral":
-                        bytecode.append("ldc ").append(methodCallNode.getChildren().get(0).getNodeName()).append("\n");
+                    case "StringLiteral", "NumberLiteral":
+                        bytecode.append("ldc ").append(child.getNodeName()).append("\n");
                         break;
                     case "identifier":
-                        switch (param.getType()) {
-                            case "I":
-                                bytecode.append("iload_").append(param.getLocalPosition()).append("\n");
-                                break;
-                            default:
-                                bytecode.append("aload_").append(param.getLocalPosition()).append("\n");
-                                break;
-                        }
+                        bytecode.append("aload").append((Integer.parseInt(param.getLocalPosition()) > 3 ? " " : "_")).append(param.getLocalPosition()).append("\n");
                         break;
                 }
             }
+            bytecode.append("invokevirtual ").append(methods.get(methodName).getClassName()).append("/").append(methodName)
+                    .append("(").append(methods.get(methodName).getSignature()).append(")")
+                    .append(methods.get(methodName).getReturnType()).append("\n");
         }
-
-        bytecode.append("invokevirtual ").append(methods.get(methodName).getClassName()).append("/").append(methodName)
-                .append("(").append(methods.get(methodName).getSignature()).append(")")
-                .append(methods.get(methodName).getReturnType()).append("\n");
     }
 
     private void generateIfStatement(ASTNode ifStatementNode) {
+        String elseLabel = ifNum + "C";
+        String endLabel = ifNum + "D";
+        for (ASTNode child : ifStatementNode.getChildren()) {
+            switch (child.getNodeType()) {
+                case "identifier":
+                    var param2 = findParam(child.getNodeName(), className);
+                    bytecode.append("aload").append((Integer.parseInt(param2.getLocalPosition()) > 3 ? " " : "_")).append(param2.getLocalPosition()).append("\n");
+                    bytecode.append("invokevirtual Boolean/getBool()Ljava/lang/String;\nldc \"true\"\n" +
+                            "invokevirtual java/lang/String/equals(Ljava/lang/Object;)Z\n" +
+                            "ifeq ").append(elseLabel).append("\n");
+                    break;
+                case "ThenBlock", "ElseBlock":
+                    if (child.getNodeType().equals("ElseBlock"))
+                        bytecode.append(elseLabel).append(":\n");
+                    for (ASTNode child2 : child.getChildren()) {
+                        switch (child2.getNodeType()) {
+                            case "assignment":
+                                generateAssignmentInMethod(child2);
+                                break;
+                            case "MethodCall":
+                                generateMethodCall(child2);
+                                break;
+                            case "IfStatement":
+                                generateIfStatement(child2);
+                                break;
+                            case "WhileStatement":
+                                generateWhileStatement(child2);
+                                break;
+                            default:
+                                throw new UnsupportedOperationException("Unknown ifStatement element: " + child2.getNodeType());
+                        }
+                    }
+                    if (child.getNodeType().equals("ThenBlock"))
+                        bytecode.append("goto ").append(endLabel).append("\n");
+                    else
+                        bytecode.append(endLabel).append(":\n");
+                    break;
+            }
+        }
+        ifNum += "A";
     }
 
     private void generateWhileStatement(ASTNode whileStatementNode) {
+        bytecode.append(whileNum).append(":\n");
+        var whileEnd = whileNum + "E";
+        for (ASTNode child : whileStatementNode.getChildren()) {
+            if (child.getNodeType().equals("identifier") && child.getChildren().isEmpty()) {
+                var param2 = findParam(child.getNodeName(), className);
+                bytecode.append("aload").append((Integer.parseInt(param2.getLocalPosition()) > 3 ? " " : "_")).append(param2.getLocalPosition()).append("\n");
+                bytecode.append("invokevirtual Boolean/getBool()Ljava/lang/String;\nldc \"true\"\n" +
+                        "invokevirtual java/lang/String/equals(Ljava/lang/Object;)Z\n" +
+                        "ifeq ").append(whileEnd).append("\n");
+                break;
+            }
+        }
+        for (ASTNode child : whileStatementNode.getChildren()) {
+            switch (child.getNodeType()) {
+                case "assignment":
+                    generateAssignmentInMethod(child);
+                    break;
+                case "MethodCall":
+                    generateMethodCall(child);
+                    break;
+                case "IfStatement":
+                    generateIfStatement(child);
+                    break;
+                case "WhileStatement":
+                    generateWhileStatement(child);
+                    break;
+                case "identifier":
+                    if (child.getChildren().isEmpty())
+                        break;
+                    var localParam = findParam(child.getNodeName(), className);
+                    assert localParam != null;
+                    if (localParam.getIsMethodParam())
+                        bytecode.append("aload").append((Integer.parseInt(localParam.getLocalPosition()) > 3 ? " " : "_")).append(localParam.getLocalPosition())
+                                .append("\n");
+                    else
+                        bytecode.append("getfield ").append(className).append("/")
+                                .append(localParam.getName()).append(localParam.getType()).append("\n");
+                    generateMethodCall(child.getChildren().get(0));
+                    break;
+                default:
+                    break;
+            }
+        }
+        bytecode.append("goto ").append(whileNum).append("\n").append(whileEnd).append(":\n");
     }
 
     private String mapType(String type) {
         switch (type) {
             case "Integer":
-                return "I";
+                return "LInteger;";
             case "String":
                 return "Ljava/lang/String;";
             case "Real":
                 return "D";
             case "Boolean":
-                return "Z";
+                return "LBoolean;";
             case "Array[Integer]":
-                return "[I";
+                return "[LInteger;";
             default:
                 return "L" + type + ";";
         }
