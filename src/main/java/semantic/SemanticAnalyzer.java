@@ -398,12 +398,10 @@ public class SemanticAnalyzer {
     }
 
     private boolean isTypeCompatible(String varType, String valueType) {
-        if (varType.equals("Integer")) {
-            varType = "NumberLiteral";
-        } else if (varType.equals("String")) {
-            varType = "StringLiteral";
-        } else if (varType.equals("Boolean")) {
-            varType = "BoolLiteral";
+        switch (varType) {
+            case "Integer" -> varType = "NumberLiteral";
+            case "String" -> varType = "StringLiteral";
+            case "Boolean" -> varType = "BoolLiteral";
         }
 
         return varType.equals(valueType);
