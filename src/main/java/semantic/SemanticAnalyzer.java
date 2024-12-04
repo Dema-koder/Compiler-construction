@@ -398,11 +398,15 @@ public class SemanticAnalyzer {
     }
 
     private boolean isTypeCompatible(String varType, String valueType) {
-        if (varType.equals(valueType)) {
-            return true;
+        if (varType.equals("Integer")) {
+            varType = "NumberLiteral";
+        } else if (varType.equals("String")) {
+            varType = "StringLiteral";
+        } else if (varType.equals("Boolean")) {
+            varType = "BoolLiteral";
         }
 
-        return varType.equals("String") && valueType.equals("StringLiteral");
+        return varType.equals(valueType);
     }
 
     private void analyzeConstructorCall(ASTNode constructorCallNode) {
@@ -519,6 +523,13 @@ public class SemanticAnalyzer {
 
         ASTNode rhs = assignmentNode.getChildren().get(1);
         analyzeExpression(rhs);
+
+        var expectedType = symbolTable.get(lhs.getNodeName());
+        if (!rhs.getNodeType().equals("MethodCall") && !isTypeCompatible(expectedType, rhs.getNodeType())) {
+            throw new RuntimeException("Type mismatch: Cannot assign a value of type " + rhs.getNodeType() +
+                    " to variable " + lhs.getNodeName() + " of type " + expectedType);
+        }
+
     }
 
     private String analyzeMethodCall(ASTNode methodCallNode) {
@@ -734,7 +745,7 @@ public class SemanticAnalyzer {
             case "NumberLiteral":
                 System.out.println("NumberLiteral: " + expressionNode.getNodeName());
                 break;
-            case "BooleanLiteral":
+            case "BoolLiteral":
                 System.out.println("BooleanLiteral: " + expressionNode.getNodeName());
                 break;
             case "RealLiteral":
