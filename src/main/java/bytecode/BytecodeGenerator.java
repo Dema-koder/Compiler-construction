@@ -44,9 +44,13 @@ public class BytecodeGenerator {
         methods.put("Xor", new Method("Xor", "Boolean", "LBoolean;", "LBoolean;"));
         methods.put("Not", new Method("Not", "Boolean", "", "LBoolean;"));
         methods.put("getBool", new Method("getBool", "Boolean", "", "Ljava/lang/String;"));
+        methods.put("Length", new Method("Length", "Array", "", "LInteger;"));
+        methods.put("get", new Method("get", "Array", "I", "Ljava/lang/Object;"));
+        methods.put("set", new Method("set", "Array", "ILjava/lang/Object;", "V"));
+
     }
 
-    public void generate(ASTNode root) throws Exception {
+    public void generate(ASTNode root) {
         if (!"Program".equals(root.getNodeType())) {
             throw new IllegalArgumentException("Root node must be of type 'Program'");
         }
@@ -112,7 +116,7 @@ public class BytecodeGenerator {
         }
 
         bytecode.append(")V\n");
-        bytecode.append("    .limit stack 1000\n"); ////////////////////////
+        bytecode.append("    .limit stack 1000\n");
         bytecode.append("    .limit locals 1000\n");
         bytecode.append("    aload_0\n");
         bytecode.append("    invokespecial java/lang/Object/<init>()V\n");
@@ -202,7 +206,7 @@ public class BytecodeGenerator {
         }
         var target = child.getChildren().get(0);
         if (target.getNodeType().equals("ConstructorCall")) {
-            bytecode.append("new ").append(target.getNodeName()).append("\ndup\n");
+            bytecode.append("new ").append(target.getNodeName().startsWith("Array") ? "Array": target.getNodeName()).append("\ndup\n");
 
             StringBuilder constructorType = new StringBuilder();
             for (ASTNode child2 : target.getChildren()) {
@@ -217,19 +221,15 @@ public class BytecodeGenerator {
                         break;
                     case "identifier":
                         var param2 = findParam(child2.getNodeName(), className);
-                        bytecode.append("aload").append((Integer.parseInt(param2.getLocalPosition()) > 3 ? " " : "_")).append(param2.getLocalPosition()).append("\n");
+                        bytecode.append("aload").append((Integer.parseInt(param2.getLocalPosition()) > 3 ? " " : "_"))
+                                .append(param2.getLocalPosition()).append("\n");
                         constructorType.append(param2.getType());
                         break;
                 }
             }
-            bytecode.append("invokespecial ").append(target.getNodeName()).append("/<init>(").append(constructorType).append(")V\n");
+            bytecode.append("invokespecial ").append(target.getNodeName().startsWith("Array") ? "Array": target.getNodeName())
+                    .append("/<init>(").append(constructorType).append(")V\n");
             bytecode.append("astore").append((Integer.parseInt(param.getLocalPosition()) > 3 ? " " : "_")).append(param.getLocalPosition()).append("\n");
-        }
-    }
-
-    private void generateMethodIdentifier(ASTNode child, Map types) {
-        if (types.get(child.getNodeName()) != null) {
-            //bytecode.append("new ").append(className).append("\n").
         }
     }
 
@@ -316,7 +316,10 @@ public class BytecodeGenerator {
                 break;
             case "MethodCall":
                 generateMethodCall(value);
-                bytecode.append("astore").append((Integer.parseInt(param.getLocalPosition()) > 3 ? " " : "_")).append(param.getLocalPosition()).append("\n");
+                if (value.getNodeName().equals("get"))
+                    bytecode.append("checkcast ").append(param.getType().substring(1, param.getType().length() - 1)).append("\n");
+                if (!param.getType().startsWith("["))
+                    bytecode.append("astore").append((Integer.parseInt(param.getLocalPosition()) > 3 ? " " : "_")).append(param.getLocalPosition()).append("\n");
                 break;
         }
     }
@@ -503,10 +506,8 @@ public class BytecodeGenerator {
                 return "D";
             case "Boolean":
                 return "LBoolean;";
-            case "Array[Integer]":
-                return "[LInteger;";
             default:
-                return "L" + type + ";";
+                return "[" + mapType(type.substring(6, type.length() - 1));
         }
     }
 
