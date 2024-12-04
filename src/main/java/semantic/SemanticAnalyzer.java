@@ -202,7 +202,7 @@ public class SemanticAnalyzer {
 
         symbolTable.clear(); // New symbol table for method scope
 
-        String returnType = "Void"; // Track the return type
+        String returnType = "Void";
 
         // Check for overridden methods
         if (classDef.getParentClass() != null) {
@@ -252,6 +252,7 @@ public class SemanticAnalyzer {
                     throw new RuntimeException("Unexpected method element: " + child.getNodeType());
             }
         }
+
         globalSymbolTable.put(methodName, returnType);
     }
 
@@ -354,6 +355,8 @@ public class SemanticAnalyzer {
                 return "Boolean";
             case "RealLiteral":
                 return "Real";
+            case "Void":
+                return "Void";
             case "identifier":
                 // Check global symbol table first, then global symbol table
                 String identifierType = symbolTable.get(expressionNode.getNodeName());
