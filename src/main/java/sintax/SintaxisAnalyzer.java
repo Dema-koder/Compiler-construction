@@ -463,6 +463,10 @@ public class SintaxisAnalyzer {
             String number = currentToken().value();
             nextToken();
             return new ASTNode("RealLiteral", number);
+        } else if (check(TokenType.BOOLEAN_LITERAL)) {
+            String bool = currentToken().value();
+            nextToken();
+            return new ASTNode("BoolLiteral", bool);
         }
         return new ASTNode("error", "rorr");
     }
