@@ -197,7 +197,11 @@ public class SintaxisAnalyzer {
         while (!check(TokenType.END)) {
             methodNode.addChild(parseStatement());
         }
-
+        if (returnType == null) {
+            ASTNode emptyReturn = new ASTNode("ReturnStatement");
+            emptyReturn.addChild(new ASTNode("Void", "Void"));
+            methodNode.addChild(emptyReturn);
+        }
         expect(TokenType.END);
         return methodNode;
     }
