@@ -197,19 +197,6 @@ public class SemanticAnalyzer {
 
         String returnType = "Void";
 
-        // Check for overridden methods
-        if (classDef.getParentClass() != null) {
-            ClassDefinition parentDef = classTable.get(classDef.getParentClass());
-            if (parentDef != null && parentDef.hasMethod(methodName)) {
-                String parentReturnType = parentDef.getMethodReturnType(methodName);
-                if (!parentReturnType.equals(returnType)) {
-                    throw new RuntimeException("Return type of method " + methodName +
-                            " in class " + classDef.getName() +
-                            " does not match the parent class method return type.");
-                }
-            }
-        }
-
         System.out.println("Analyzing method: " + methodName + " in class " + classDef.getName());
 
         for (ASTNode child : methodNode.getChildren()) {
@@ -421,7 +408,6 @@ public class SemanticAnalyzer {
     private void analyzeConstructorCall(ASTNode constructorCallNode) {
         System.out.println("Analyzing constructor call for type: " + constructorCallNode.getNodeName());
 
-        // Parse generic types, e.g., "Array[Integer]"
         String fullClassName = constructorCallNode.getNodeName();
         String baseClassName = parseBaseClassName(fullClassName);
         List<String> genericTypeParameters = parseGenericTypeParameters(fullClassName);
@@ -792,21 +778,35 @@ public class SemanticAnalyzer {
     }
 
     private void analyzeBinaryOperation(ASTNode binaryNode) {
-        if (!binaryNode.getNodeName().equals("Mult")) {
+        System.out.println("Analyzing binary operation: " + binaryNode.getNodeName());
+
+        if (!List.of("Mult", "Plus", "Minus", "Divide").contains(binaryNode.getNodeName())) {
             throw new RuntimeException("Unsupported binary operation: " + binaryNode.getNodeName());
         }
 
+        // Validate both operands
         ASTNode leftOperand = binaryNode.getChildren().get(0);
         ASTNode rightOperand = binaryNode.getChildren().get(1);
 
         String leftType = getExpressionType(leftOperand);
         String rightType = getExpressionType(rightOperand);
 
-        if (!"Real".equals(leftType) || !"Real".equals(rightType)) {
-            throw new RuntimeException("Operands of Mult must be of type Real, got: " + leftType + " and " + rightType);
+        System.out.println("Left operand type: " + leftType);
+        System.out.println("Right operand type: " + rightType);
+
+        if (!leftType.equals(rightType)) {
+            throw new RuntimeException("Type mismatch in binary operation: left=" + leftType + ", right=" + rightType);
         }
 
-        System.out.println("Binary operation " + binaryNode.getNodeName() + " validated with Real operands.");
+        // Numeric operations
+        if (List.of("Mult", "Plus", "Minus", "Divide").contains(binaryNode.getNodeName())) {
+            if (!List.of("Integer", "Real").contains(leftType)) {
+                throw new RuntimeException("Binary operation requires numeric types, but got: " + leftType);
+            }
+        }
+
+        // Print the result type for debugging
+        System.out.println("Binary operation result type: " + leftType);
     }
 
     private boolean isGlobal(ASTNode varDeclNode) {
