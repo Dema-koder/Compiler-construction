@@ -1,13 +1,32 @@
-class Circle is
-    var radius: Real
-    var pi: Real
-
-    this(radius: Real) is
-        radius := 5
-        pi := 3
+class Proga is
+    this() is
     end
-
-    method area() Real is
-        return pi.Mult(radius).Mult(radius)
+    method check(x: Integer) is
+        var b: Boolean
+        var c: Integer
+        var two: Integer
+        two := 2
+        c := x.Rem(two)
+        var one: Integer
+        one := 1
+        b := c.Equal(one)
+        if b then
+            print("odd")
+        else
+            print("even")
+        end
     end
 end
+
+class Main is
+    this() is
+    end
+    method main() is
+        var x: Proga()
+        var four: Integer
+        four := 4
+        x.check(four)
+    end
+end
+
+

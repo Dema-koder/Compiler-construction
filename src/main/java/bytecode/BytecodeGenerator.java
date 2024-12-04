@@ -4,6 +4,8 @@ import ast.ASTNode;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -65,7 +67,21 @@ public class BytecodeGenerator {
     private void generateClass(ASTNode classNode) {
         className = classNode.getNodeName();
         bytecode.append(".class public ").append(className).append("\n");
-        bytecode.append(".super java/lang/Object\n\n");
+
+        String superClassName = "";
+        boolean ok = true;
+        for (ASTNode child : classNode.getChildren()) {
+            if (child.getNodeType().equals("extends")) {
+                ok = false;
+                superClassName = child.getNodeName();
+                break;
+            }
+        }
+
+        if (ok) {
+            bytecode.append(".super java/lang/Object\n\n");
+            superClassName = "java/lang/Object";
+        }
 
         for (ASTNode child : classNode.getChildren()) {
             switch (child.getNodeType()) {
@@ -73,12 +89,15 @@ public class BytecodeGenerator {
                     generateClassDeclaration(child);
                     break;
                 case "constructor":
-                    generateConstructor(child);
+                    generateConstructor(child, superClassName);
                     break;
                 case "method":
                     generateMethod(child);
                     break;
                 case "extends":
+                    String parentClassName = child.getNodeName();
+                    bytecode.append(".super ").append(parentClassName).append("\n\n");
+                    inheritFromParentClass(parentClassName);
                     break;
                 default:
                     throw new UnsupportedOperationException("Unknown class element: " + child.getNodeType());
@@ -94,6 +113,44 @@ public class BytecodeGenerator {
         }
     }
 
+    private void inheritFromParentClass(String parentClassName) {
+        String parentFileName = "/Users/demanzverev/IdeaProjects/compiler-construction/src/main/java/examples/" + parentClassName + ".j";
+
+        try {
+            String parentFileContent = Files.readString(Paths.get(parentFileName));
+
+            String fields = extractSection(parentFileContent, ".field", "\n");
+            String methods = extractSection(parentFileContent, ".method", ".end method");
+
+            bytecode.append(fields).append("\n");
+            bytecode.append(methods).append("\n");
+
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load parent class: " + parentFileName, e);
+        }
+    }
+
+    private String extractSection(String fileContent, String startMarker, String endMarker) {
+        StringBuilder section = new StringBuilder();
+
+        String[] lines = fileContent.split("\n");
+        boolean inSection = false;
+
+        for (String line : lines) {
+            if (line.startsWith(startMarker)) {
+                inSection = true;
+            }
+            if (inSection) {
+                section.append(line).append("\n");
+            }
+            if (line.startsWith(endMarker)) {
+                inSection = false;
+            }
+        }
+
+        return section.toString();
+    }
+
     private void generateClassDeclaration(ASTNode varNode) {
         String fieldName = varNode.getNodeName();
         String fieldType = mapType(varNode.getNodeTypeInfo());
@@ -103,7 +160,7 @@ public class BytecodeGenerator {
         params.add(param);
     }
 
-    private void generateConstructor(ASTNode constructorNode) {
+    private void generateConstructor(ASTNode constructorNode, String superClassName) {
         bytecode.append("\n.method public <init>(");
 
         Map types = new HashMap<String, String>();
@@ -119,7 +176,7 @@ public class BytecodeGenerator {
         bytecode.append("    .limit stack 1000\n");
         bytecode.append("    .limit locals 1000\n");
         bytecode.append("    aload_0\n");
-        bytecode.append("    invokespecial java/lang/Object/<init>()V\n");
+        bytecode.append("    invokespecial ").append(superClassName).append("/<init>()V\n");
 
         for (ASTNode child : constructorNode.getChildren()) {
             if ("assignment".equals(child.getNodeType())) {
@@ -191,7 +248,17 @@ public class BytecodeGenerator {
                     generateDeclarationInMethod(param, child);
                     break;
                 case "identifier":
-                    //generateMethodIdentifier(child);
+                    if (child.getChildren().isEmpty())
+                        break;
+                    var localParam = findParam(child.getNodeName(), className);
+                    assert localParam != null;
+                    if (localParam.getIsMethodParam())
+                        bytecode.append("aload").append((Integer.parseInt(localParam.getLocalPosition()) > 3 ? " " : "_")).append(localParam.getLocalPosition())
+                                .append("\n");
+                    else
+                        bytecode.append("getfield ").append(className).append("/")
+                                .append(localParam.getName()).append(localParam.getType()).append("\n");
+                    generateMethodCall(child.getChildren().get(0));
                     break;
                 default:
                     throw new UnsupportedOperationException("Unknown method element: " + child.getNodeType());
@@ -507,6 +574,8 @@ public class BytecodeGenerator {
             case "Boolean":
                 return "LBoolean;";
             default:
+                if (!type.startsWith("Array"))
+                    return "L" + type + ";";
                 return "[" + mapType(type.substring(6, type.length() - 1));
         }
     }

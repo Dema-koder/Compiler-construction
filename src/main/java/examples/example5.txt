@@ -3,7 +3,8 @@ class Main is
     end
     method main() is
         var arr: Array[Integer](100)
-        var x: Integer := 2
+        var x: Integer
+        x := 2
         arr := arr.set(2, x)
         var y: Integer
         y := arr.get(2)

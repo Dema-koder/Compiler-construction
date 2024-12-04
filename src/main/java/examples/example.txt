@@ -1,0 +1,33 @@
+class ArrProcessor is
+    method squareAll(arr: Array[Integer]) is
+        var i: Integer
+        i := 1
+        var b: Boolean
+        var y: Integer
+        y := 3
+        b := i.LessEqual(y)
+        var one: Integer
+        one := 1
+        var x: Integer
+        while b loop
+            x := arr.get(i)
+            print(x)
+            i := i.Plus(one)
+            b := i.LessEqual(y)
+        end
+    end
+
+    method main() is
+        var arr: Array[Integer](3)
+        var elem: Integer
+        elem := 3
+        arr := arr.set(0, elem)
+        var elem: Integer
+        elem := 2
+        arr := arr.set(1, elem)
+        var elem: Integer
+        elem := 1
+        arr := arr.set(2, elem)
+        squareAll(arr)
+    end
+end

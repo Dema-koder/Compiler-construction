@@ -1,13 +1,11 @@
 class Animal is
     method speak() String is
         return "Generic sound"
-        var i: Integer := 1
     end
 end
 
 class Dog is
     method speak() String is
         return "Bark"
-        var i: Integer := 1
     end
 end

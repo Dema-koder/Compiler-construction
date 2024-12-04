@@ -1,21 +1,28 @@
+class Proga is
+    this() is
+    end
+
+    method squareElements() is
+        var i: Integer
+        i := 1
+        var b: Boolean
+        var six: Integer
+        six := 6
+        b := i.Less(six)
+        while b loop
+            i := i.Plus(six)
+            b := i.Less(six)
+            print("ok")
+        end
+    end
+end
+
 class Main is
     this() is
     end
-    method squareElements(arr: Array[Integer]) is
-        var i: Integer := 1
-        while i.LessEqual(6) loop
-            var x: Integer := arr.get(i)
-            i := i.Plus(1)
-        end
-    end
     method main() is
-        var numbers: Array[Integer]
-        numbers.set(1, 2)
-        numbers.set(2, 3)
-        numbers.set(3, 4)
-        numbers.set(4, 5)
-        numbers.set(5, 6)
-        squareElements(numbers)
+        var x: Proga()
+        x.squareElements()
     end
 end
 

@@ -1,10 +1,21 @@
-class Person is
-    var name: String := "John Doe"
-    var age: Integer := 30
-    var gender: String := "female"
-
-    this(name: String, age: Integer) is
-        this.name := name
-        this.age := age
+class Main is
+    this() is
+    end
+    method main() is
+        var i: Integer
+        i := 0
+        var b: Boolean
+        var ten: Integer
+        ten := 10
+        b := i.Less(ten)
+        var one: Integer
+        one := 1
+        while b loop
+            i := i.Plus(one)
+            b := i.Less(ten)
+            print(i)
+        end
     end
 end
+
+
