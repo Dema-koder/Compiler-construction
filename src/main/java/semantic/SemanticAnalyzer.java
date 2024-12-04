@@ -98,13 +98,8 @@ public class SemanticAnalyzer {
         while (iterator.hasNext()) {
             ASTNode child = iterator.next();
 
-            if (foundReturn && (child.getNodeType().equals("method") || child.getNodeType().equals("class") || child.getNodeType().equals("constructor") || child.getNodeType().equals("ElseBlock"))) {
+            if (foundReturn && (child.getNodeType().equals("method") || child.getNodeType().equals("class") || child.getNodeType().equals("ElseBlock"))) {
                 foundReturn = false;
-            }
-
-            if (child.getNodeType().equals("constructor") && child.getChildren().isEmpty()) {
-                iterator.remove(); // Remove unreachable node
-                continue;
             }
 
             // If a return statement was found in this scope, mark subsequent siblings as unreachable.
@@ -192,8 +187,6 @@ public class SemanticAnalyzer {
 
     private void analyzeConstructor() {
         System.out.println("Analyzing constructor");
-
-
     }
 
     private void analyzeMethod(ASTNode methodNode, ClassDefinition classDef) {
