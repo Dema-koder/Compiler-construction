@@ -425,18 +425,37 @@ public class SemanticAnalyzer {
     private void analyzeConstructorCall(ASTNode constructorCallNode) {
         System.out.println("Analyzing constructor call for type: " + constructorCallNode.getNodeName());
 
-        String className = constructorCallNode.getNodeName();
-        if (!classTable.containsKey(className)) {
-            throw new RuntimeException("Class " + className + " is not defined.");
+        // Parse generic types, e.g., "Array[Integer]"
+        String fullClassName = constructorCallNode.getNodeName();
+        String baseClassName = parseBaseClassName(fullClassName);
+        List<String> genericTypeParameters = parseGenericTypeParameters(fullClassName);
+
+        // Check if the base class exists in the class table
+        if (!classTable.containsKey(baseClassName) && !baseClassName.equals("Array")) {
+            throw new RuntimeException("Class " + baseClassName + " is not defined.");
         }
 
-        ClassDefinition classDef = classTable.get(className);
+        if (baseClassName.equals("Array")) {
+            validateArrayGenericTypes(genericTypeParameters);
+
+            if (!constructorCallNode.getChildren().isEmpty()) {
+                ASTNode sizeArgument = constructorCallNode.getChildren().getFirst();
+                String sizeArgType = getExpressionType(sizeArgument);
+                if (!sizeArgType.equals("Integer")) {
+                    throw new RuntimeException("Constructor for Array expects an Integer size argument, but got " + sizeArgType);
+                }
+            }
+            return;
+        }
+
+        // Validate the constructor arguments
+        ClassDefinition classDef = classTable.get(baseClassName);
         List<String> expectedArgTypes = classDef.getConstructorArgTypes();
         int expectedArgs = expectedArgTypes.size();
         int actualArgs = constructorCallNode.getChildren().size();
 
         if (expectedArgs != actualArgs) {
-            throw new RuntimeException("Constructor for class " + className + " expects " +
+            throw new RuntimeException("Constructor for class " + baseClassName + " expects " +
                     expectedArgs + " arguments, but got " + actualArgs);
         }
 
@@ -448,9 +467,40 @@ public class SemanticAnalyzer {
             System.out.println("Validating argument " + (i + 1) + ": expected " + expectedArgType + ", got " + actualArgType);
 
             if (!actualArgType.equals(expectedArgType)) {
-                throw new RuntimeException("Type mismatch in constructor for class " + className +
+                throw new RuntimeException("Type mismatch in constructor for class " + baseClassName +
                         ": expected " + expectedArgType + ", but got " + actualArgType + " for argument " + (i + 1));
             }
+        }
+    }
+
+    private String parseBaseClassName(String fullClassName) {
+        int genericStart = fullClassName.indexOf('[');
+        return (genericStart == -1) ? fullClassName : fullClassName.substring(0, genericStart);
+    }
+
+    private List<String> parseGenericTypeParameters(String fullClassName) {
+        int genericStart = fullClassName.indexOf('[');
+        int genericEnd = fullClassName.lastIndexOf(']');
+        if (genericStart == -1 || genericEnd == -1 || genericStart > genericEnd) {
+            return List.of(); // No generic type parameters
+        }
+        String params = fullClassName.substring(genericStart + 1, genericEnd);
+        return List.of(params.split(","));
+    }
+
+    private void validateArrayGenericTypes(List<String> genericTypeParameters) {
+        if (genericTypeParameters.size() != 1) {
+            throw new RuntimeException("Array expects exactly 1 generic type parameter, but got " + genericTypeParameters.size());
+        }
+
+        String elementType = genericTypeParameters.getFirst();
+        List<String> allowedTypes = List.of("Integer", "String", "Boolean");
+
+        System.out.println("Validating Array generic type: " + elementType);
+
+        if (!allowedTypes.contains(elementType)) {
+            throw new RuntimeException("Invalid generic type for Array: " + elementType +
+                    ". Allowed types are: " + allowedTypes);
         }
     }
 
@@ -535,11 +585,22 @@ public class SemanticAnalyzer {
     }
 
     private String analyzeNumericMethod(String methodName, String targetType, ASTNode methodCallNode) {
-        if (!List.of("Mult", "Plus", "Minus", "Divide", "LessEqual", "Rem", "Equal").contains(methodName)) {
+        if (!List.of("Mult", "Plus", "Minus", "Divide", "LessEqual", "Rem", "Equal", "print").contains(methodName)) {
             throw new RuntimeException("Unknown method " + methodName + " for numeric type " + targetType);
         }
 
         List<ASTNode> args = methodCallNode.getChildren();
+
+        if ("print".equals(methodName)) {
+            // Ensure `print` has one argument of numeric type
+            if (args.size() != 1) {
+                throw new RuntimeException("print expects 1 argument, but got " + args.size());
+            }
+            if (!targetType.equals(getExpressionType(args.getFirst()))) {
+                throw new RuntimeException("Argument type for print must match the numeric type " + targetType);
+            }
+            return "void";
+        }
 
         switch (methodName) {
             case "LessEqual":
@@ -582,8 +643,20 @@ public class SemanticAnalyzer {
     }
 
     private String analyzeStringMethod(String methodName, ASTNode methodCallNode) {
-        if (!List.of("Concat", "Substring").contains(methodName)) {
+        if (!List.of("Concat", "Substring", "print").contains(methodName)) {
             throw new RuntimeException("Unknown method " + methodName + " for type String");
+        }
+
+        if ("print".equals(methodName)) {
+            // Ensure `print` has one String argument
+            List<ASTNode> args = methodCallNode.getChildren();
+            if (args.size() != 1) {
+                throw new RuntimeException("print expects 1 argument, but got " + args.size());
+            }
+            if (!"String".equals(getExpressionType(args.getFirst()))) {
+                throw new RuntimeException("Argument type for print must be String");
+            }
+            return "void";
         }
 
         if ("Concat".equals(methodName)) {
